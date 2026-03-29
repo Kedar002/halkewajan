@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter:*)",
+      "Skill(update-config)",
+      "Bash(python:*)",
+      "Bash(gh auth:*)",
+      "Bash(git:*)",
+      "Bash(cd:*)",
+      "Bash(dart analyze:*)",
+      "Bash(echo 'import \"\"\"\"package:lucide_icons/lucide_icons.dart\"\"\"\"; void main\\(\\) { print\\(LucideIcons.package2\\); }')",
+      "Bash(dart run:*)",
+      "Bash(find /c/Users/Kedar/AppData/Local/Pub/Cache -name cupertino_icons.dart -path */cupertino_icons*)",
+      "Bash(find /c/Users/Kedar/AppData/Local/Pub/Cache -path */flutter/lib/src/cupertino/icon*)",
+      "Read(//c/Users/Kedar/**)",
+      "Bash(where flutter:*)",
+      "Bash(ls:*)",
+      "Bash(grep -r \"freeze\\\\|frozen\\\\|pluto\\\\|table\\\\|column.*fixed\\\\|fixed.*column\" 'C:\\\\Users\\\\Kedar\\\\Desktop\\\\Personal Projects\\\\inventory\\\\inventory_web\\\\lib' --include=*.dart)",
+      "Bash(where sqlite3.exe)",
+      "Bash(wc:*)",
+      "Bash(mkdir:*)",
+      "Bash(curl -sL -o \"C:\\\\Users\\\\Kedar\\\\Desktop\\\\Personal Projects\\\\inventory\\\\inventory_web\\\\web\\\\sqlite3.wasm\" \"https://github.com/simolus3/sqlite3.dart/releases/download/sqlite3-3.2.0/sqlite3.wasm\")",
+      "Bash(taskkill //F //IM \"chrome.exe\")",
+      "Bash(taskkill //F //FI \"WINDOWTITLE eq *flutter*\")",
+      "Bash(explorer:*)",
+      "Bash(start:*)"
+    ]
+  }
+}
