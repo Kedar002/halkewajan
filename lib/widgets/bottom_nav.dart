@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
 
 class BottomNav extends StatelessWidget {
@@ -12,6 +13,11 @@ class BottomNav extends StatelessWidget {
     required this.onTap,
   });
 
+  void _handleTap(int index) {
+    HapticFeedback.lightImpact();
+    onTap(index);
+  }
+
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
@@ -19,7 +25,7 @@ class BottomNav extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.6),
+            color: const Color(0xFF0A0A12).withValues(alpha: 0.85),
             border: Border(
               top: BorderSide(
                 color: Colors.white.withValues(alpha: 0.06),
@@ -34,36 +40,11 @@ class BottomNav extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _NavItem(
-                    icon: Icons.home_rounded,
-                    label: 'Home',
-                    isActive: currentIndex == 0,
-                    onTap: () => onTap(0),
-                  ),
-                  _NavItem(
-                    icon: Icons.restaurant_rounded,
-                    label: 'Diet',
-                    isActive: currentIndex == 1,
-                    onTap: () => onTap(1),
-                  ),
-                  _NavItem(
-                    icon: Icons.fitness_center_rounded,
-                    label: 'Workout',
-                    isActive: currentIndex == 2,
-                    onTap: () => onTap(2),
-                  ),
-                  _NavItem(
-                    icon: Icons.trending_up_rounded,
-                    label: 'Progress',
-                    isActive: currentIndex == 3,
-                    onTap: () => onTap(3),
-                  ),
-                  _NavItem(
-                    icon: Icons.person_rounded,
-                    label: 'Profile',
-                    isActive: currentIndex == 4,
-                    onTap: () => onTap(4),
-                  ),
+                  _NavItem(icon: Icons.home_rounded, label: 'Home', isActive: currentIndex == 0, onTap: () => _handleTap(0)),
+                  _NavItem(icon: Icons.restaurant_rounded, label: 'Diet', isActive: currentIndex == 1, onTap: () => _handleTap(1)),
+                  _NavItem(icon: Icons.fitness_center_rounded, label: 'Workout', isActive: currentIndex == 2, onTap: () => _handleTap(2)),
+                  _NavItem(icon: Icons.trending_up_rounded, label: 'Progress', isActive: currentIndex == 3, onTap: () => _handleTap(3)),
+                  _NavItem(icon: Icons.person_rounded, label: 'Profile', isActive: currentIndex == 4, onTap: () => _handleTap(4)),
                 ],
               ),
             ),
@@ -97,24 +78,27 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Glow behind active icon
+            // Icon with animated glow
             Stack(
               alignment: Alignment.center,
               children: [
-                if (isActive)
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          AppTheme.accent.withValues(alpha: 0.3),
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
+                AnimatedContainer(
+                  duration: AppTheme.animMedium,
+                  curve: AppTheme.animCurve,
+                  width: isActive ? 48 : 0,
+                  height: isActive ? 48 : 0,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: isActive
+                        ? RadialGradient(
+                            colors: [
+                              AppTheme.accent.withValues(alpha: 0.25),
+                              Colors.transparent,
+                            ],
+                          )
+                        : null,
                   ),
+                ),
                 Icon(
                   icon,
                   size: 24,
@@ -124,9 +108,29 @@ class _NavItem extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 3),
-            Text(
-              label,
+            const SizedBox(height: 2),
+            // Active indicator dot
+            AnimatedContainer(
+              duration: AppTheme.animMedium,
+              curve: AppTheme.animCurve,
+              width: isActive ? 4 : 0,
+              height: isActive ? 4 : 0,
+              margin: const EdgeInsets.only(bottom: 2),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppTheme.accent,
+                boxShadow: isActive
+                    ? [
+                        BoxShadow(
+                          color: AppTheme.accent.withValues(alpha: 0.5),
+                          blurRadius: 6,
+                        ),
+                      ]
+                    : null,
+              ),
+            ),
+            AnimatedDefaultTextStyle(
+              duration: AppTheme.animFast,
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
@@ -135,6 +139,7 @@ class _NavItem extends StatelessWidget {
                     : Colors.white.withValues(alpha: 0.4),
                 letterSpacing: 0.1,
               ),
+              child: Text(label),
             ),
           ],
         ),

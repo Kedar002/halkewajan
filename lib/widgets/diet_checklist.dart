@@ -22,7 +22,10 @@ class DietChecklist extends StatefulWidget {
   State<DietChecklist> createState() => _DietChecklistState();
 }
 
-class _DietChecklistState extends State<DietChecklist> {
+class _DietChecklistState extends State<DietChecklist>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _staggerController;
+
   final List<_Meal> _meals = [
     _Meal(name: 'Breakfast', description: 'Oats & Banana', calories: 320),
     _Meal(name: 'Lunch', description: 'Grilled Chicken Salad', calories: 450),
@@ -33,10 +36,51 @@ class _DietChecklistState extends State<DietChecklist> {
   int get _completedCount => _meals.where((m) => m.completed).length;
 
   @override
+  void initState() {
+    super.initState();
+    _staggerController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    // Delay to sync with parent entrance animation
+    Future.delayed(const Duration(milliseconds: 900), () {
+      if (mounted) _staggerController.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _staggerController.dispose();
+    super.dispose();
+  }
+
+  Animation<double> _rowFade(int index) {
+    final start = (index * 0.18).clamp(0.0, 1.0);
+    final end = (start + 0.45).clamp(0.0, 1.0);
+    return CurvedAnimation(
+      parent: _staggerController,
+      curve: Interval(start, end, curve: Curves.easeOut),
+    );
+  }
+
+  Animation<Offset> _rowSlide(int index) {
+    final start = (index * 0.18).clamp(0.0, 1.0);
+    final end = (start + 0.55).clamp(0.0, 1.0);
+    return Tween<Offset>(
+      begin: const Offset(0.06, 0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _staggerController,
+      curve: Interval(start, end, curve: Curves.easeOutCubic),
+    ));
+  }
+
+  @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
     return GlassCard(
+      accentColor: AppTheme.calories,
       padding: const EdgeInsets.all(0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,20 +104,19 @@ class _DietChecklistState extends State<DietChecklist> {
                     ),
                   ],
                 ),
-                // Progress pill
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: AppTheme.accent.withValues(alpha: 0.12),
+                    color: AppTheme.calories.withValues(alpha: 0.12),
                     borderRadius: AppTheme.borderRadiusPill,
                   ),
                   child: Text(
                     '${(_completedCount * 100 / _meals.length).round()}%',
                     style: textTheme.labelLarge?.copyWith(
-                      color: AppTheme.accent,
+                      color: AppTheme.calories,
                       fontWeight: FontWeight.w600,
                       fontSize: 12,
                     ),
@@ -83,27 +126,33 @@ class _DietChecklistState extends State<DietChecklist> {
             ),
           ),
 
-          // Meal list
+          // Meal list with staggered animation
           ...List.generate(_meals.length, (index) {
             final meal = _meals[index];
             final isLast = index == _meals.length - 1;
 
-            return Column(
-              children: [
-                // Divider
-                Container(
-                  height: 0.5,
-                  margin: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-                  color: Colors.white.withValues(alpha: 0.06),
+            return FadeTransition(
+              opacity: _rowFade(index),
+              child: SlideTransition(
+                position: _rowSlide(index),
+                child: Column(
+                  children: [
+                    Container(
+                      height: 0.5,
+                      margin:
+                          const EdgeInsets.symmetric(horizontal: Spacing.lg),
+                      color: Colors.white.withValues(alpha: 0.06),
+                    ),
+                    _MealRow(
+                      meal: meal,
+                      onToggle: () {
+                        setState(() => meal.completed = !meal.completed);
+                      },
+                    ),
+                    if (isLast) const SizedBox(height: Spacing.sm),
+                  ],
                 ),
-                _MealRow(
-                  meal: meal,
-                  onToggle: () {
-                    setState(() => meal.completed = !meal.completed);
-                  },
-                ),
-                if (isLast) const SizedBox(height: Spacing.sm),
-              ],
+              ),
             );
           }),
         ],
@@ -126,7 +175,7 @@ class _MealRow extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onToggle,
-        splashColor: AppTheme.accent.withValues(alpha: 0.05),
+        splashColor: AppTheme.calories.withValues(alpha: 0.05),
         highlightColor: Colors.transparent,
         child: Padding(
           padding: const EdgeInsets.symmetric(
@@ -135,10 +184,10 @@ class _MealRow extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // Custom checkbox
+              // Checkbox
               AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOutCubic,
+                duration: AppTheme.animFast,
+                curve: AppTheme.animCurve,
                 width: 22,
                 height: 22,
                 decoration: BoxDecoration(
@@ -161,7 +210,6 @@ class _MealRow extends StatelessWidget {
                       )
                     : null,
               ),
-
               const SizedBox(width: Spacing.md),
 
               // Meal info
@@ -194,16 +242,29 @@ class _MealRow extends StatelessWidget {
                 ),
               ),
 
-              // Calories
-              Text(
-                '${meal.calories}',
-                style: textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: meal.completed
-                      ? Colors.white.withValues(alpha: 0.3)
-                      : AppTheme.calories,
+              // Calories with gradient when active
+              if (!meal.completed)
+                ShaderMask(
+                  shaderCallback: (bounds) => const LinearGradient(
+                    colors: AppTheme.caloriesGradient,
+                  ).createShader(
+                      Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
+                  child: Text(
+                    '${meal.calories}',
+                    style: textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                )
+              else
+                Text(
+                  '${meal.calories}',
+                  style: textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white.withValues(alpha: 0.3),
+                  ),
                 ),
-              ),
               const SizedBox(width: 2),
               Text(
                 'cal',

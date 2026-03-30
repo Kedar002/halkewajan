@@ -29,9 +29,11 @@ class TodaysWorkoutCard extends StatefulWidget {
   State<TodaysWorkoutCard> createState() => _TodaysWorkoutCardState();
 }
 
-class _TodaysWorkoutCardState extends State<TodaysWorkoutCard> {
+class _TodaysWorkoutCardState extends State<TodaysWorkoutCard>
+    with SingleTickerProviderStateMixin {
   static const _workoutType = 'Push Day';
   static const _duration = '~45 min';
+  late final AnimationController _staggerController;
 
   final List<_Exercise> _exercises = [
     _Exercise(name: 'Bench Press', sets: 4, reps: 10, weightKg: 60),
@@ -44,10 +46,51 @@ class _TodaysWorkoutCardState extends State<TodaysWorkoutCard> {
   int get _completedCount => _exercises.where((e) => e.completed).length;
 
   @override
+  void initState() {
+    super.initState();
+    _staggerController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    // Delay to sync with parent entrance animation
+    Future.delayed(const Duration(milliseconds: 1100), () {
+      if (mounted) _staggerController.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _staggerController.dispose();
+    super.dispose();
+  }
+
+  Animation<double> _rowFade(int index) {
+    final start = (index * 0.14).clamp(0.0, 1.0);
+    final end = (start + 0.4).clamp(0.0, 1.0);
+    return CurvedAnimation(
+      parent: _staggerController,
+      curve: Interval(start, end, curve: Curves.easeOut),
+    );
+  }
+
+  Animation<Offset> _rowSlide(int index) {
+    final start = (index * 0.14).clamp(0.0, 1.0);
+    final end = (start + 0.5).clamp(0.0, 1.0);
+    return Tween<Offset>(
+      begin: const Offset(0.06, 0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _staggerController,
+      curve: Interval(start, end, curve: Curves.easeOutCubic),
+    ));
+  }
+
+  @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
     return GlassCard(
+      accentColor: AppTheme.weight,
       padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,20 +125,20 @@ class _TodaysWorkoutCardState extends State<TodaysWorkoutCard> {
                     ],
                   ),
                 ),
-                // Workout type pill
+                // Workout type pill — blue accent
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: AppTheme.accent.withValues(alpha: 0.12),
+                    color: AppTheme.weight.withValues(alpha: 0.12),
                     borderRadius: AppTheme.borderRadiusPill,
                   ),
                   child: Text(
                     _workoutType,
                     style: textTheme.labelLarge?.copyWith(
-                      color: AppTheme.accent,
+                      color: AppTheme.weight,
                       fontWeight: FontWeight.w600,
                       fontSize: 12,
                     ),
@@ -105,26 +148,34 @@ class _TodaysWorkoutCardState extends State<TodaysWorkoutCard> {
             ),
           ),
 
-          // Exercise list
+          // Exercise list with stagger
           ...List.generate(_exercises.length, (index) {
             final exercise = _exercises[index];
             final isLast = index == _exercises.length - 1;
 
-            return Column(
-              children: [
-                Container(
-                  height: 0.5,
-                  margin: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-                  color: Colors.white.withValues(alpha: 0.06),
+            return FadeTransition(
+              opacity: _rowFade(index),
+              child: SlideTransition(
+                position: _rowSlide(index),
+                child: Column(
+                  children: [
+                    Container(
+                      height: 0.5,
+                      margin:
+                          const EdgeInsets.symmetric(horizontal: Spacing.lg),
+                      color: Colors.white.withValues(alpha: 0.06),
+                    ),
+                    _ExerciseRow(
+                      exercise: exercise,
+                      onToggle: () {
+                        setState(() =>
+                            exercise.completed = !exercise.completed);
+                      },
+                    ),
+                    if (isLast) const SizedBox(height: Spacing.sm),
+                  ],
                 ),
-                _ExerciseRow(
-                  exercise: exercise,
-                  onToggle: () {
-                    setState(() => exercise.completed = !exercise.completed);
-                  },
-                ),
-                if (isLast) const SizedBox(height: Spacing.sm),
-              ],
+              ),
             );
           }),
         ],
@@ -147,7 +198,7 @@ class _ExerciseRow extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onToggle,
-        splashColor: AppTheme.accent.withValues(alpha: 0.05),
+        splashColor: AppTheme.weight.withValues(alpha: 0.05),
         highlightColor: Colors.transparent,
         child: Padding(
           padding: const EdgeInsets.symmetric(
@@ -156,20 +207,20 @@ class _ExerciseRow extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // Checkbox
+              // Blue checkbox
               AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOutCubic,
+                duration: AppTheme.animFast,
+                curve: AppTheme.animCurve,
                 width: 22,
                 height: 22,
                 decoration: BoxDecoration(
                   color: exercise.completed
-                      ? AppTheme.accent
+                      ? AppTheme.weight
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(7),
                   border: Border.all(
                     color: exercise.completed
-                        ? AppTheme.accent
+                        ? AppTheme.weight
                         : Colors.white.withValues(alpha: 0.2),
                     width: 1.5,
                   ),
@@ -178,11 +229,10 @@ class _ExerciseRow extends StatelessWidget {
                     ? const Icon(
                         Icons.check_rounded,
                         size: 14,
-                        color: Colors.black,
+                        color: Colors.white,
                       )
                     : null,
               ),
-
               const SizedBox(width: Spacing.md),
 
               // Exercise name

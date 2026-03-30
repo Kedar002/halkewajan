@@ -143,16 +143,13 @@ class WeightGoalCard extends StatelessWidget {
                 children: [
                   Text(
                     isGaining ? 'Target' : 'Goal',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
+                    style: textTheme.labelMedium?.copyWith(
                       color: Colors.white.withValues(alpha: 0.4),
                     ),
                   ),
                   Text(
                     '${_fmt(goalWeight)} kg',
-                    style: const TextStyle(
-                      fontSize: 13,
+                    style: textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),

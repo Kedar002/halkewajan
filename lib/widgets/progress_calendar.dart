@@ -318,7 +318,8 @@ class _CalendarPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_CalendarPainter oldDelegate) => true;
+  bool shouldRepaint(_CalendarPainter oldDelegate) =>
+      months.length != oldDelegate.months.length;
 }
 
 /// Legend item: small colored dot + label.

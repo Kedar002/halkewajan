@@ -25,6 +25,13 @@ class _Supplement {
   const _Supplement(this.name, this.dosage, this.icon);
 }
 
+class _DietChange {
+  final String date;
+  final String change;
+  final String reason;
+  const _DietChange(this.date, this.change, this.reason);
+}
+
 // ─── Screen ───────────────────────────────────────────────
 
 class DietScreen extends StatefulWidget {
@@ -48,6 +55,8 @@ class _DietScreenState extends State<DietScreen>
   late final Animation<Offset> _recipesSlide;
   late final Animation<double> _suppFade;
   late final Animation<Offset> _suppSlide;
+  late final Animation<double> _historyFade;
+  late final Animation<Offset> _historySlide;
 
   int _selectedDay = DateTime.now().weekday - 1;
   final Set<int> _takenSupps = {};
@@ -117,6 +126,34 @@ class _DietScreenState extends State<DietScreen>
     _Supplement('Vitamin D3', '2000 IU', Icons.wb_sunny_rounded),
   ];
 
+  static const _dietHistory = [
+    _DietChange(
+      'Mar 25, 2026',
+      'Added Quinoa Bowl to Friday lunch',
+      'Better post-workout recovery meal with balanced macros',
+    ),
+    _DietChange(
+      'Mar 18, 2026',
+      'Reduced carbs: 250g → 200g target',
+      'Plateau at current weight — adjusting macros for deficit',
+    ),
+    _DietChange(
+      'Mar 10, 2026',
+      'Swapped white rice for brown rice',
+      'More fiber, slower digestion — keeps fullness longer',
+    ),
+    _DietChange(
+      'Mar 3, 2026',
+      'Added Fish Oil & Vitamin D3',
+      'Blood work showed low Vitamin D, doctor recommended',
+    ),
+    _DietChange(
+      'Feb 25, 2026',
+      'Initial diet plan',
+      'Starting 1,700 kcal deficit plan with high protein',
+    ),
+  ];
+
   // ── Animation helpers ──────────────────────────────────
 
   Animation<double> _fade(double s, double e) =>
@@ -142,6 +179,8 @@ class _DietScreenState extends State<DietScreen>
     _recipesSlide  = _slide(0.35, 0.70);
     _suppFade      = _fade(0.45, 0.75);
     _suppSlide     = _slide(0.45, 0.80);
+    _historyFade   = _fade(0.55, 0.85);
+    _historySlide  = _slide(0.55, 0.90);
 
     _anim.forward();
   }
@@ -242,6 +281,17 @@ class _DietScreenState extends State<DietScreen>
                   child: SlideTransition(
                     position: _suppSlide,
                     child: _buildSupplements(tt),
+                  ),
+                ),
+
+                const SizedBox(height: Spacing.lg),
+
+                // Change history
+                FadeTransition(
+                  opacity: _historyFade,
+                  child: SlideTransition(
+                    position: _historySlide,
+                    child: _buildHistory(tt),
                   ),
                 ),
 
@@ -475,6 +525,32 @@ class _DietScreenState extends State<DietScreen>
           ),
         ),
       ],
+    );
+  }
+
+  // ── Change History ──────────────────────────────────────
+
+  Widget _buildHistory(TextTheme tt) {
+    return GlassCard(
+      accentColor: AppTheme.calories,
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Spacing.lg, Spacing.lg, Spacing.lg, Spacing.md,
+            ),
+            child: Text('CHANGE HISTORY', style: tt.labelMedium),
+          ),
+          for (var i = 0; i < _dietHistory.length; i++)
+            _DietTimelineEntry(
+              entry: _dietHistory[i],
+              isLast: i == _dietHistory.length - 1,
+            ),
+          const SizedBox(height: Spacing.md),
+        ],
+      ),
     );
   }
 
@@ -769,6 +845,86 @@ class _SupplementRow extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Diet Timeline Entry ─────────────────────────────────
+
+class _DietTimelineEntry extends StatelessWidget {
+  final _DietChange entry;
+  final bool isLast;
+
+  const _DietTimelineEntry({required this.entry, required this.isLast});
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Timeline — dot + line
+            SizedBox(
+              width: 20,
+              child: Column(
+                children: [
+                  const SizedBox(height: 2),
+                  Container(
+                    width: 10, height: 10,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppTheme.calories,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.calories.withValues(alpha: 0.3),
+                          blurRadius: 6,
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (!isLast)
+                    Expanded(
+                      child: Container(
+                        width: 1,
+                        margin: const EdgeInsets.only(top: 4),
+                        color: Colors.white.withValues(alpha: 0.08),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(width: Spacing.md),
+            // Content
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(bottom: isLast ? 0 : Spacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      entry.date,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white.withValues(alpha: 0.4),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: Spacing.xs),
+                    Text(entry.change, style: tt.titleSmall),
+                    const SizedBox(height: Spacing.xs),
+                    Text(entry.reason, style: tt.bodySmall),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

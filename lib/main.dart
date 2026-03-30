@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'theme/app_theme.dart';
 import 'screens/home_screen.dart';
 import 'screens/diet_screen.dart';
+import 'screens/workout_screen.dart';
 import 'widgets/bottom_nav.dart';
 
 void main() {
@@ -51,20 +52,16 @@ class _AppShellState extends State<AppShell> {
   }
 
   Widget _buildBody() {
-    switch (_currentIndex) {
-      case 0:
-        return const HomeScreen();
-      case 1:
-        return const DietScreen();
-      case 2:
-      case 3:
-      case 4:
-        return _PlaceholderScreen(
-          title: ['Home', 'Diet', 'Workout', 'Progress', 'Profile'][_currentIndex],
-        );
-      default:
-        return const HomeScreen();
-    }
+    return IndexedStack(
+      index: _currentIndex,
+      children: const [
+        HomeScreen(),
+        DietScreen(),
+        WorkoutScreen(),
+        _PlaceholderScreen(title: 'Progress'),
+        _PlaceholderScreen(title: 'Profile'),
+      ],
+    );
   }
 }
 

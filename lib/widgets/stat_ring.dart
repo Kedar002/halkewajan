@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 class StatRing extends StatelessWidget {
   final double progress;
@@ -104,14 +105,21 @@ class _RingPainter extends CustomPainter {
 
     canvas.drawCircle(center, radius, bgPaint);
 
-    // Progress arc with gradient
+    // Progress arc with improved gradient
     if (progress > 0) {
       final sweepAngle = 2 * math.pi * progress;
+
+      // Create lighter shade for gradient start
+      final hsl = HSLColor.fromColor(color);
+      final lighterColor = hsl
+          .withLightness((hsl.lightness + 0.15).clamp(0.0, 1.0))
+          .toColor();
+
       final gradient = SweepGradient(
         startAngle: -math.pi / 2,
         endAngle: -math.pi / 2 + sweepAngle,
         colors: [
-          color.withValues(alpha: 0.8),
+          lighterColor,
           color,
           color,
         ],
@@ -191,11 +199,6 @@ class _ActivityRingsPainter extends CustomPainter {
   final double carbsProgress;
   final double fatProgress;
 
-  static const Color _calories = Color(0xFFFF9500);
-  static const Color _protein = Color(0xFFAF52DE);
-  static const Color _carbs = Color(0xFF5AC8FA);
-  static const Color _fat = Color(0xFFFF2D55);
-
   _ActivityRingsPainter({
     required this.calorieProgress,
     required this.proteinProgress,
@@ -219,10 +222,15 @@ class _ActivityRingsPainter extends CustomPainter {
     final sweepAngle = 2 * math.pi * progress;
     final rect = Rect.fromCircle(center: center, radius: radius);
 
-    // Gradient arc
+    // Improved gradient — lighter start
+    final hsl = HSLColor.fromColor(color);
+    final lighterColor = hsl
+        .withLightness((hsl.lightness + 0.15).clamp(0.0, 1.0))
+        .toColor();
+
     final gradient = SweepGradient(
       colors: [
-        color.withValues(alpha: 0.7),
+        lighterColor.withValues(alpha: 0.7),
         color,
         color,
       ],
@@ -259,13 +267,10 @@ class _ActivityRingsPainter extends CustomPainter {
 
     final outerR = (size.width - strokeWidth) / 2;
 
-    _drawRing(canvas, center, outerR, calorieProgress, _calories, strokeWidth);
-    _drawRing(
-        canvas, center, outerR - gap, proteinProgress, _protein, strokeWidth);
-    _drawRing(
-        canvas, center, outerR - gap * 2, carbsProgress, _carbs, strokeWidth);
-    _drawRing(
-        canvas, center, outerR - gap * 3, fatProgress, _fat, strokeWidth);
+    _drawRing(canvas, center, outerR, calorieProgress, AppTheme.calories, strokeWidth);
+    _drawRing(canvas, center, outerR - gap, proteinProgress, AppTheme.protein, strokeWidth);
+    _drawRing(canvas, center, outerR - gap * 2, carbsProgress, AppTheme.carbs, strokeWidth);
+    _drawRing(canvas, center, outerR - gap * 3, fatProgress, AppTheme.fat, strokeWidth);
   }
 
   @override

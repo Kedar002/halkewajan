@@ -40,6 +40,35 @@ class AppTheme {
     Color(0xFF42A5F5),
     Color(0xFF007AFF),
   ];
+  static const List<Color> proteinGradient = [
+    Color(0xFFC77DFF),
+    Color(0xFFAF52DE),
+  ];
+  static const List<Color> fatGradient = [
+    Color(0xFFFF6B6B),
+    Color(0xFFFF2D55),
+  ];
+  static const List<Color> carbsGradient = [
+    Color(0xFF7DD3FC),
+    Color(0xFF5AC8FA),
+  ];
+
+  // Shadow tokens
+  static const List<BoxShadow> shadowSm = [
+    BoxShadow(color: Color(0x4D000000), blurRadius: 8, offset: Offset(0, 4)),
+  ];
+  static const List<BoxShadow> shadowMd = [
+    BoxShadow(color: Color(0x66000000), blurRadius: 16, offset: Offset(0, 8)),
+  ];
+  static const List<BoxShadow> shadowLg = [
+    BoxShadow(color: Color(0x80000000), blurRadius: 24, offset: Offset(0, 12)),
+  ];
+
+  // Animation tokens
+  static const Duration animFast = Duration(milliseconds: 200);
+  static const Duration animMedium = Duration(milliseconds: 300);
+  static const Duration animSlow = Duration(milliseconds: 500);
+  static const Curve animCurve = Curves.easeOutCubic;
 
   // Radii
   static const double radiusCard = 24.0;
