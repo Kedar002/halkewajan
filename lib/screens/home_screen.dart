@@ -3,6 +3,8 @@ import '../theme/app_theme.dart';
 import '../widgets/progress_calendar.dart';
 import '../widgets/todays_calorie_card.dart';
 import '../widgets/weight_goal_card.dart';
+import '../widgets/diet_checklist.dart';
+import '../widgets/todays_workout_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,13 +21,17 @@ class _HomeScreenState extends State<HomeScreen>
   late final Animation<Offset> _calendarSlide;
   late final Animation<double> _calorieOpacity;
   late final Animation<Offset> _calorieSlide;
+  late final Animation<double> _checklistOpacity;
+  late final Animation<Offset> _checklistSlide;
+  late final Animation<double> _workoutOpacity;
+  late final Animation<Offset> _workoutSlide;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 1800),
     );
 
     _greetingOpacity = CurvedAnimation(
@@ -55,6 +61,30 @@ class _HomeScreenState extends State<HomeScreen>
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: const Interval(0.35, 0.8, curve: Curves.easeOutCubic),
+    ));
+
+    _checklistOpacity = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.45, 0.75, curve: Curves.easeOut),
+    );
+    _checklistSlide = Tween<Offset>(
+      begin: const Offset(0, 0.15),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.45, 0.80, curve: Curves.easeOutCubic),
+    ));
+
+    _workoutOpacity = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.60, 0.90, curve: Curves.easeOut),
+    );
+    _workoutSlide = Tween<Offset>(
+      begin: const Offset(0, 0.15),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.60, 0.95, curve: Curves.easeOutCubic),
     ));
 
     _controller.forward();
@@ -191,6 +221,28 @@ class _HomeScreenState extends State<HomeScreen>
                         ],
                       ),
                     ),
+                  ),
+                ),
+
+                const SizedBox(height: Spacing.md),
+
+                // Diet checklist — slides up + fades in
+                FadeTransition(
+                  opacity: _checklistOpacity,
+                  child: SlideTransition(
+                    position: _checklistSlide,
+                    child: const DietChecklist(),
+                  ),
+                ),
+
+                const SizedBox(height: Spacing.md),
+
+                // Today's workout — slides up + fades in
+                FadeTransition(
+                  opacity: _workoutOpacity,
+                  child: SlideTransition(
+                    position: _workoutSlide,
+                    child: const TodaysWorkoutCard(),
                   ),
                 ),
 
