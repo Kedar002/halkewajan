@@ -4,7 +4,10 @@ import 'theme/app_theme.dart';
 import 'screens/home_screen.dart';
 import 'screens/diet_screen.dart';
 import 'screens/workout_screen.dart';
+import 'screens/progress_screen.dart';
+import 'widgets/app_background.dart';
 import 'widgets/bottom_nav.dart';
+import 'widgets/glass_card.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,7 +61,7 @@ class _AppShellState extends State<AppShell> {
         HomeScreen(),
         DietScreen(),
         WorkoutScreen(),
-        _PlaceholderScreen(title: 'Progress'),
+        ProgressScreen(),
         _PlaceholderScreen(title: 'Profile'),
       ],
     );
@@ -71,14 +74,54 @@ class _PlaceholderScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: AppTheme.backgroundGradient,
-      ),
-      child: Center(
-        child: Text(
-          title,
-          style: Theme.of(context).textTheme.displaySmall,
+    return AppBackground(
+      child: SafeArea(
+        bottom: false,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 32),
+              Text(title, style: Theme.of(context).textTheme.displayLarge),
+              const SizedBox(height: 32),
+              // Tall card
+              const GlassCard(
+                child: SizedBox(height: 180, width: double.infinity),
+              ),
+              const SizedBox(height: 16),
+              // Two side-by-side cards
+              const IntrinsicHeight(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GlassCard(
+                        child: SizedBox(height: 120),
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: GlassCard(
+                        child: SizedBox(height: 120),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Medium card
+              const GlassCard(
+                child: SizedBox(height: 140, width: double.infinity),
+              ),
+              const SizedBox(height: 16),
+              // Small card
+              const GlassCard(
+                child: SizedBox(height: 80, width: double.infinity),
+              ),
+              const SizedBox(height: 120),
+            ],
+          ),
         ),
       ),
     );

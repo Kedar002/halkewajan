@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 class GlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsets padding;
-  final double blur;
   final BorderRadius? borderRadius;
   final Color? accentColor;
 
@@ -12,41 +11,31 @@ class GlassCard extends StatelessWidget {
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(24),
-    this.blur = 30.0,
     this.borderRadius,
     this.accentColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    final radius = borderRadius ?? BorderRadius.circular(24);
+    final br = borderRadius ?? BorderRadius.circular(24);
     final accent = accentColor;
 
     return Container(
-      // Shadow layer — outside the clip so shadows are visible
+      // Shadows outside the clip
       decoration: BoxDecoration(
-        borderRadius: radius,
+        borderRadius: br,
         boxShadow: [
-          // Contact shadow — soft grounding
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.10),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
-          // Ambient shadow — floating depth
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 40,
             spreadRadius: -8,
             offset: const Offset(0, 20),
           ),
-          // Warm ambient glow — makes the card feel alive
-          BoxShadow(
-            color: (accent ?? const Color(0xFFFFF8F0)).withValues(alpha: 0.03),
-            blurRadius: 20,
-            spreadRadius: -5,
-          ),
-          // Accent color spill
           if (accent != null)
             BoxShadow(
               color: accent.withValues(alpha: 0.06),
@@ -56,19 +45,17 @@ class GlassCard extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: radius,
+        borderRadius: br,
         child: BackdropFilter(
-          // Higher blur = smoother, more diffuse frosting
-          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+          filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
           child: CustomPaint(
             foregroundPainter: _LiquidGlassPainter(
-              radius: radius,
+              radius: br,
               accent: accent,
             ),
             child: Container(
               padding: padding,
               decoration: BoxDecoration(
-                // Warm-tinted radial specular — not pure white
                 gradient: RadialGradient(
                   center: const Alignment(-0.5, -0.8),
                   radius: 1.8,
@@ -79,7 +66,6 @@ class GlassCard extends StatelessWidget {
                           Colors.white.withValues(alpha: 0.01),
                         ]
                       : [
-                          // Warm white specular — slight amber warmth
                           const Color(0xFFFFFAF5).withValues(alpha: 0.10),
                           Colors.white.withValues(alpha: 0.03),
                           Colors.white.withValues(alpha: 0.01),
@@ -96,8 +82,6 @@ class GlassCard extends StatelessWidget {
   }
 }
 
-/// Paints the liquid glass surface treatment: inner luminosity,
-/// secondary depth highlight, and directional rim border.
 class _LiquidGlassPainter extends CustomPainter {
   final BorderRadius radius;
   final Color? accent;
@@ -118,27 +102,25 @@ class _LiquidGlassPainter extends CustomPainter {
     canvas.save();
     canvas.clipRRect(rrect);
 
-    // 1. Inner luminosity — warm glow from top, extending deep
+    // Inner luminosity — warm glow from top
     final glowRect = Rect.fromLTWH(0, 0, size.width, size.height * 0.5);
     final glowPaint = Paint()
       ..shader = const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          Color(0x14FFFFFF), // white ~8%
-          Color(0x00FFFFFF), // transparent
+          Color(0x14FFFFFF),
+          Color(0x00FFFFFF),
         ],
       ).createShader(glowRect);
     canvas.drawRect(glowRect, glowPaint);
 
-    // 2. Secondary specular — subtle bottom-right for 3D volume
-    final secondaryRect = Rect.fromLTWH(
-      size.width * 0.3,
-      size.height * 0.5,
-      size.width * 0.7,
-      size.height * 0.5,
+    // Secondary specular — bottom-right for depth
+    final secRect = Rect.fromLTWH(
+      size.width * 0.3, size.height * 0.5,
+      size.width * 0.7, size.height * 0.5,
     );
-    final secondaryPaint = Paint()
+    final secPaint = Paint()
       ..shader = RadialGradient(
         center: Alignment.bottomRight,
         radius: 0.8,
@@ -146,12 +128,12 @@ class _LiquidGlassPainter extends CustomPainter {
           Colors.white.withValues(alpha: 0.04),
           Colors.transparent,
         ],
-      ).createShader(secondaryRect);
-    canvas.drawRect(secondaryRect, secondaryPaint);
+      ).createShader(secRect);
+    canvas.drawRect(secRect, secPaint);
 
     canvas.restore();
 
-    // 3. Directional rim border — softer, wider, luminous gradient
+    // Directional rim border
     final borderPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5

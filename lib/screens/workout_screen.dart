@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_background.dart';
 import '../widgets/glass_card.dart';
 
 // ─── Data ─────────────────────────────────────────────────
@@ -179,20 +180,8 @@ class _WorkoutScreenState extends State<WorkoutScreen>
     final tt = Theme.of(context).textTheme;
     final plan = _plans[_selectedDay]!;
 
-    return Stack(
-      children: [
-        Container(decoration: const BoxDecoration(gradient: AppTheme.backgroundGradient)),
-
-        Positioned(
-          top: -60, right: -60,
-          child: _glowOrb(280, AppTheme.weight, 0.10),
-        ),
-        Positioned(
-          bottom: 200, left: -100,
-          child: _glowOrb(320, AppTheme.accent, 0.06),
-        ),
-
-        SafeArea(
+    return AppBackground(
+      child: SafeArea(
           bottom: false,
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
@@ -253,19 +242,8 @@ class _WorkoutScreenState extends State<WorkoutScreen>
             ),
           ),
         ),
-      ],
     );
   }
-
-  Widget _glowOrb(double size, Color color, double alpha) => Container(
-        width: size, height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [color.withValues(alpha: alpha), Colors.transparent],
-          ),
-        ),
-      );
 
   // ── Day Selector ───────────────────────────────────────
 

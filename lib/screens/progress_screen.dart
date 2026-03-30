@@ -2,7 +2,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_background.dart';
 import '../widgets/glass_card.dart';
+import 'tracking_screen.dart';
 
 // ─── Data models ──────────────────────────────────────────
 
@@ -48,7 +50,6 @@ class _ProgressScreenState extends State<ProgressScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _anim;
 
-  // Section animations
   late final Animation<double> _headerFade;
   late final Animation<double> _rangeFade;
   late final Animation<Offset> _rangeSlide;
@@ -65,7 +66,7 @@ class _ProgressScreenState extends State<ProgressScreen>
   late final Animation<double> _historyFade;
   late final Animation<Offset> _historySlide;
 
-  int _rangeIndex = 2; // default 3M
+  int _rangeIndex = 2;
 
   static const _rangeLabels = ['1W', '1M', '3M', '6M', '1Y'];
 
@@ -149,15 +150,27 @@ class _ProgressScreenState extends State<ProgressScreen>
     super.dispose();
   }
 
-  Widget _glowOrb(double size, Color color, double alpha) => Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-              colors: [color.withValues(alpha: alpha), Colors.transparent]),
-        ),
-      );
+  void _openTracking() {
+    HapticFeedback.lightImpact();
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => const TrackingScreen(),
+        transitionsBuilder: (context, anim, secondaryAnimation, child) {
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 1),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(
+              parent: anim,
+              curve: Curves.easeOutCubic,
+            )),
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 350),
+      ),
+    );
+  }
 
   // ── Build ──────────────────────────────────────────────
 
@@ -167,23 +180,8 @@ class _ProgressScreenState extends State<ProgressScreen>
 
     return Stack(
       children: [
-        Container(
-            decoration:
-                const BoxDecoration(gradient: AppTheme.backgroundGradient)),
-
-        // Ambient orbs
-        Positioned(
-            top: -60, right: -80, child: _glowOrb(320, AppTheme.weight, 0.10)),
-        Positioned(
-            bottom: 200,
-            left: -100,
-            child: _glowOrb(350, AppTheme.accent, 0.06)),
-        Positioned(
-            top: 400,
-            right: -40,
-            child: _glowOrb(250, AppTheme.protein, 0.05)),
-
-        SafeArea(
+        AppBackground(
+          child: SafeArea(
           bottom: false,
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
@@ -193,15 +191,31 @@ class _ProgressScreenState extends State<ProgressScreen>
               children: [
                 const SizedBox(height: Spacing.xl),
 
-                // Header
+                // Header with + button
                 FadeTransition(
                   opacity: _headerFade,
-                  child: Text('Progress', style: tt.displayLarge),
+                  child: Row(
+                    children: [
+                      Text('Progress', style: tt.displayLarge),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: _openTracking,
+                        child: Container(
+                          width: 40, height: 40,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppTheme.accent.withValues(alpha: 0.12),
+                          ),
+                          child: const Icon(Icons.add_rounded,
+                              size: 22, color: AppTheme.accent),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
 
                 const SizedBox(height: Spacing.lg),
 
-                // Range selector
                 FadeTransition(
                   opacity: _rangeFade,
                   child: SlideTransition(
@@ -212,7 +226,6 @@ class _ProgressScreenState extends State<ProgressScreen>
 
                 const SizedBox(height: Spacing.lg),
 
-                // Weight chart
                 FadeTransition(
                   opacity: _chartFade,
                   child: SlideTransition(
@@ -223,7 +236,6 @@ class _ProgressScreenState extends State<ProgressScreen>
 
                 const SizedBox(height: Spacing.lg),
 
-                // BMI
                 FadeTransition(
                   opacity: _bmiFade,
                   child: SlideTransition(
@@ -234,7 +246,6 @@ class _ProgressScreenState extends State<ProgressScreen>
 
                 const SizedBox(height: Spacing.lg),
 
-                // Strength PRs
                 FadeTransition(
                   opacity: _prFade,
                   child: SlideTransition(
@@ -245,7 +256,6 @@ class _ProgressScreenState extends State<ProgressScreen>
 
                 const SizedBox(height: Spacing.lg),
 
-                // Measurements
                 FadeTransition(
                   opacity: _measureFade,
                   child: SlideTransition(
@@ -256,7 +266,6 @@ class _ProgressScreenState extends State<ProgressScreen>
 
                 const SizedBox(height: Spacing.lg),
 
-                // Photos
                 FadeTransition(
                   opacity: _photoFade,
                   child: SlideTransition(
@@ -267,7 +276,6 @@ class _ProgressScreenState extends State<ProgressScreen>
 
                 const SizedBox(height: Spacing.lg),
 
-                // PR History
                 FadeTransition(
                   opacity: _historyFade,
                   child: SlideTransition(
@@ -278,6 +286,44 @@ class _ProgressScreenState extends State<ProgressScreen>
 
                 const SizedBox(height: 120),
               ],
+            ),
+          ),
+        ),
+        ),
+
+        // Floating "Log Progress" button
+        Positioned(
+          bottom: 90,
+          left: Spacing.lg,
+          right: Spacing.lg,
+          child: GestureDetector(
+            onTap: _openTracking,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(999),
+                color: AppTheme.accent,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.accent.withValues(alpha: 0.35),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.edit_rounded, size: 18, color: Colors.black),
+                  SizedBox(width: Spacing.sm),
+                  Text('Log Progress',
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                          letterSpacing: 0.2)),
+                ],
+              ),
             ),
           ),
         ),
@@ -307,11 +353,9 @@ class _ProgressScreenState extends State<ProgressScreen>
                     ? AppTheme.accent
                     : Colors.white.withValues(alpha: 0.06),
                 boxShadow: active
-                    ? [
-                        BoxShadow(
-                            color: AppTheme.accent.withValues(alpha: 0.3),
-                            blurRadius: 12)
-                      ]
+                    ? [BoxShadow(
+                        color: AppTheme.accent.withValues(alpha: 0.3),
+                        blurRadius: 12)]
                     : null,
               ),
               child: Center(
@@ -342,7 +386,6 @@ class _ProgressScreenState extends State<ProgressScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Padding(
             padding: const EdgeInsets.fromLTRB(
                 Spacing.lg, Spacing.lg, Spacing.lg, 0),
@@ -359,8 +402,8 @@ class _ProgressScreenState extends State<ProgressScreen>
                               colors: AppTheme.weightGradient)
                           .createShader(
                               Rect.fromLTWH(0, 0, b.width, b.height)),
-                      child: const Text('78.5',
-                          style: TextStyle(
+                      child: Text(_currentWeight.toStringAsFixed(1),
+                          style: const TextStyle(
                               fontSize: 34,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
@@ -388,7 +431,8 @@ class _ProgressScreenState extends State<ProgressScreen>
                           Icon(Icons.arrow_downward_rounded,
                               size: 12, color: AppTheme.accent),
                           const SizedBox(width: 2),
-                          Text('6.5 kg',
+                          Text(
+                              '${(_startWeight - _currentWeight).toStringAsFixed(1)} kg',
                               style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
@@ -401,10 +445,7 @@ class _ProgressScreenState extends State<ProgressScreen>
               ],
             ),
           ),
-
           const SizedBox(height: Spacing.md),
-
-          // Chart
           SizedBox(
             height: 180,
             child: TweenAnimationBuilder<double>(
@@ -423,24 +464,20 @@ class _ProgressScreenState extends State<ProgressScreen>
               },
             ),
           ),
-
           const SizedBox(height: Spacing.sm),
-
-          // Weight stats row
           Padding(
             padding: const EdgeInsets.fromLTRB(
                 Spacing.lg, 0, Spacing.lg, Spacing.lg),
             child: Row(
               children: [
-                _miniStat('Start', '${_startWeight.toStringAsFixed(0)}kg', tt),
+                _miniStat('Start', '${_startWeight.toStringAsFixed(0)}kg'),
                 _dividerVert(),
-                _miniStat(
-                    'Current', '${_currentWeight.toStringAsFixed(1)}kg', tt),
+                _miniStat('Current', '${_currentWeight.toStringAsFixed(1)}kg'),
                 _dividerVert(),
-                _miniStat('Goal', '${_goalWeight.toStringAsFixed(0)}kg', tt),
+                _miniStat('Goal', '${_goalWeight.toStringAsFixed(0)}kg'),
                 _dividerVert(),
                 _miniStat('Left',
-                    '${(_currentWeight - _goalWeight).toStringAsFixed(1)}kg', tt),
+                    '${(_currentWeight - _goalWeight).toStringAsFixed(1)}kg'),
               ],
             ),
           ),
@@ -449,10 +486,8 @@ class _ProgressScreenState extends State<ProgressScreen>
     );
   }
 
-  Widget _miniStat(String label, String value, TextTheme tt) {
-    return Expanded(
-      child: Column(
-        children: [
+  Widget _miniStat(String label, String value) => Expanded(
+        child: Column(children: [
           Text(value,
               style: const TextStyle(
                   fontSize: 15,
@@ -466,10 +501,8 @@ class _ProgressScreenState extends State<ProgressScreen>
                   fontWeight: FontWeight.w600,
                   color: Colors.white.withValues(alpha: 0.4),
                   letterSpacing: 0.5)),
-        ],
-      ),
-    );
-  }
+        ]),
+      );
 
   Widget _dividerVert() => Container(
       width: 0.5, height: 28, color: Colors.white.withValues(alpha: 0.08));
@@ -479,9 +512,7 @@ class _ProgressScreenState extends State<ProgressScreen>
   Widget _buildBMI(TextTheme tt) {
     const bmi = 24.2;
     const category = 'Normal';
-
-    // BMI ranges: <18.5 Underweight, 18.5-25 Normal, 25-30 Overweight, 30+ Obese
-    final normalizedBmi = ((bmi - 15) / 25).clamp(0.0, 1.0); // 15-40 range
+    final normalizedBmi = ((bmi - 15) / 25).clamp(0.0, 1.0);
 
     return GlassCard(
       padding: const EdgeInsets.all(Spacing.lg),
@@ -508,7 +539,6 @@ class _ProgressScreenState extends State<ProgressScreen>
             ],
           ),
           const SizedBox(height: Spacing.md),
-          // BMI value
           ShaderMask(
             shaderCallback: (b) =>
                 const LinearGradient(colors: AppTheme.accentGradient)
@@ -522,7 +552,6 @@ class _ProgressScreenState extends State<ProgressScreen>
                     height: 1.1)),
           ),
           const SizedBox(height: Spacing.lg),
-          // Gradient bar with marker
           TweenAnimationBuilder<double>(
             tween: Tween(begin: 0, end: normalizedBmi),
             duration: const Duration(milliseconds: 900),
@@ -530,52 +559,50 @@ class _ProgressScreenState extends State<ProgressScreen>
             builder: (context, value, _) {
               return Column(
                 children: [
-                  Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      // Track
-                      Container(
-                        height: 6,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(3),
-                          gradient: const LinearGradient(
-                            colors: [
-                              Color(0xFF5AC8FA), // underweight — cyan
-                              Color(0xFF34C759), // normal — green
-                              Color(0xFFFF9500), // overweight — orange
-                              Color(0xFFFF2D55), // obese — red
-                            ],
-                            stops: [0.0, 0.35, 0.65, 1.0],
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Container(
+                            height: 6,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(3),
+                              gradient: const LinearGradient(
+                                colors: [
+                                  Color(0xFF5AC8FA),
+                                  Color(0xFF34C759),
+                                  Color(0xFFFF9500),
+                                  Color(0xFFFF2D55),
+                                ],
+                                stops: [0.0, 0.35, 0.65, 1.0],
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      // Marker
-                      Positioned(
-                        left: value *
-                            (MediaQuery.of(context).size.width -
-                                Spacing.lg * 4),
-                        top: -5,
-                        child: Container(
-                          width: 16,
-                          height: 16,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white,
-                            border: Border.all(
-                                color: AppTheme.accent, width: 2.5),
-                            boxShadow: [
-                              BoxShadow(
-                                  color:
-                                      AppTheme.accent.withValues(alpha: 0.3),
-                                  blurRadius: 8),
-                            ],
+                          Positioned(
+                            left: value * (constraints.maxWidth - 16),
+                            top: -5,
+                            child: Container(
+                              width: 16, height: 16,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                                border: Border.all(
+                                    color: AppTheme.accent, width: 2.5),
+                                boxShadow: [
+                                  BoxShadow(
+                                      color: AppTheme.accent
+                                          .withValues(alpha: 0.3),
+                                      blurRadius: 8),
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    ],
+                        ],
+                      );
+                    },
                   ),
                   const SizedBox(height: Spacing.sm),
-                  // Labels
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -594,9 +621,7 @@ class _ProgressScreenState extends State<ProgressScreen>
     );
   }
 
-  Widget _bmiLabel(String title, String range) {
-    return Column(
-      children: [
+  Widget _bmiLabel(String title, String range) => Column(children: [
         Text(title,
             style: TextStyle(
                 fontSize: 10,
@@ -607,9 +632,7 @@ class _ProgressScreenState extends State<ProgressScreen>
             style: TextStyle(
                 fontSize: 9,
                 color: Colors.white.withValues(alpha: 0.25))),
-      ],
-    );
-  }
+      ]);
 
   // ── Strength PRs ───────────────────────────────────────
 
@@ -751,32 +774,30 @@ class _ProgressScreenState extends State<ProgressScreen>
     );
   }
 
-  Widget _photoCard(String date, String label) {
-    return GlassCard(
-      padding: EdgeInsets.zero,
-      child: AspectRatio(
-        aspectRatio: 0.75,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.person_outline_rounded,
-                size: 36, color: Colors.white.withValues(alpha: 0.15)),
-            const SizedBox(height: Spacing.sm),
-            Text(label,
-                style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white.withValues(alpha: 0.5))),
-            const SizedBox(height: 2),
-            Text(date,
-                style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.white.withValues(alpha: 0.3))),
-          ],
+  Widget _photoCard(String date, String label) => GlassCard(
+        padding: EdgeInsets.zero,
+        child: AspectRatio(
+          aspectRatio: 0.75,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.person_outline_rounded,
+                  size: 36, color: Colors.white.withValues(alpha: 0.15)),
+              const SizedBox(height: Spacing.sm),
+              Text(label,
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white.withValues(alpha: 0.5))),
+              const SizedBox(height: 2),
+              Text(date,
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.white.withValues(alpha: 0.3))),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 
   // ── PR History ─────────────────────────────────────────
 
@@ -804,171 +825,7 @@ class _ProgressScreenState extends State<ProgressScreen>
   }
 }
 
-// ─── Weight Chart Painter ─────────────────────────────────
-
-class _WeightChartPainter extends CustomPainter {
-  final List<_WeightEntry> data;
-  final double goalWeight;
-  final double animProgress;
-
-  _WeightChartPainter({
-    required this.data,
-    required this.goalWeight,
-    required this.animProgress,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (data.isEmpty) return;
-
-    const padL = 0.0;
-    const padR = 16.0;
-    const padT = 12.0;
-    const padB = 24.0;
-
-    final chartW = size.width - padL - padR;
-    final chartH = size.height - padT - padB;
-
-    final weights = data.map((d) => d.weight).toList();
-    final minW = (weights.reduce(math.min) - 2).floorToDouble();
-    final maxW = (weights.reduce(math.max) + 2).ceilToDouble();
-    final range = maxW - minW;
-
-    double toX(int i) => padL + (i / (data.length - 1)) * chartW;
-    double toY(double w) => padT + (1 - (w - minW) / range) * chartH;
-
-    // ── Goal line (dashed) ─────────────────────────────
-    final goalY = toY(goalWeight);
-    final dashPaint = Paint()
-      ..color = AppTheme.accent.withValues(alpha: 0.25)
-      ..strokeWidth = 1;
-
-    for (double x = padL; x < size.width - padR; x += 8) {
-      canvas.drawLine(Offset(x, goalY), Offset(x + 4, goalY), dashPaint);
-    }
-
-    // Goal label
-    final goalTp = TextPainter(
-      text: TextSpan(
-          text: 'Goal ${goalWeight.toStringAsFixed(0)}kg',
-          style: TextStyle(
-              fontSize: 9,
-              color: AppTheme.accent.withValues(alpha: 0.5),
-              fontWeight: FontWeight.w500)),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    goalTp.paint(canvas, Offset(size.width - padR - goalTp.width, goalY - 14));
-
-    // ── Build bezier path ──────────────────────────────
-    final visibleCount = (data.length * animProgress).ceil().clamp(1, data.length);
-    final points = <Offset>[];
-    for (var i = 0; i < visibleCount; i++) {
-      points.add(Offset(toX(i), toY(data[i].weight)));
-    }
-
-    if (points.length < 2) return;
-
-    final path = Path()..moveTo(points[0].dx, points[0].dy);
-    for (var i = 0; i < points.length - 1; i++) {
-      final p0 = points[i];
-      final p1 = points[i + 1];
-      final cpx = (p0.dx + p1.dx) / 2;
-      path.cubicTo(cpx, p0.dy, cpx, p1.dy, p1.dx, p1.dy);
-    }
-
-    // ── Gradient fill ──────────────────────────────────
-    final fillPath = Path.from(path)
-      ..lineTo(points.last.dx, padT + chartH)
-      ..lineTo(points.first.dx, padT + chartH)
-      ..close();
-
-    final fillPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          AppTheme.weight.withValues(alpha: 0.15),
-          AppTheme.weight.withValues(alpha: 0.0),
-        ],
-      ).createShader(Rect.fromLTWH(0, padT, chartW, chartH));
-
-    canvas.drawPath(fillPath, fillPaint);
-
-    // ── Line ───────────────────────────────────────────
-    final linePaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5
-      ..strokeCap = StrokeCap.round
-      ..shader = const LinearGradient(
-        colors: AppTheme.weightGradient,
-      ).createShader(Rect.fromLTWH(padL, 0, chartW, 1));
-
-    canvas.drawPath(path, linePaint);
-
-    // ── Line glow ──────────────────────────────────────
-    final glowPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 6
-      ..strokeCap = StrokeCap.round
-      ..shader = LinearGradient(
-        colors: [
-          AppTheme.weight.withValues(alpha: 0.15),
-          AppTheme.weight.withValues(alpha: 0.08),
-        ],
-      ).createShader(Rect.fromLTWH(padL, 0, chartW, 1))
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-
-    canvas.drawPath(path, glowPaint);
-
-    // ── Data points ────────────────────────────────────
-    for (var i = 0; i < points.length; i++) {
-      // Outer glow
-      canvas.drawCircle(
-        points[i],
-        4,
-        Paint()
-          ..color = AppTheme.weight.withValues(alpha: 0.15)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
-      );
-      // Dot
-      canvas.drawCircle(
-        points[i],
-        2.5,
-        Paint()..color = AppTheme.weight,
-      );
-      canvas.drawCircle(
-        points[i],
-        1.2,
-        Paint()..color = Colors.white,
-      );
-    }
-
-    // ── X-axis labels ──────────────────────────────────
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    for (var i = 0; i < visibleCount; i += 3) {
-      final d = data[i].date;
-      final label = '${months[d.month - 1]} ${d.day}';
-      final tp = TextPainter(
-        text: TextSpan(
-            text: label,
-            style: TextStyle(
-                fontSize: 9,
-                color: Colors.white.withValues(alpha: 0.3))),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      tp.paint(canvas, Offset(toX(i) - tp.width / 2, size.height - 14));
-    }
-  }
-
-  @override
-  bool shouldRepaint(_WeightChartPainter old) =>
-      animProgress != old.animProgress;
-}
-
-// ─── PR Row ───────────────────────────────────────────────
+// ─── Supporting widgets ───────────────────────────────────
 
 class _PRRow extends StatelessWidget {
   final _PR pr;
@@ -978,14 +835,12 @@ class _PRRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(
-          horizontal: Spacing.lg, vertical: 14),
+      padding:
+          const EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: 14),
       child: Row(
         children: [
-          // Trophy or dumbbell icon
           Container(
-            width: 28,
-            height: 28,
+            width: 28, height: 28,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: pr.isRecent
@@ -1034,28 +889,24 @@ class _PRRow extends StatelessWidget {
   }
 }
 
-// ─── Measurement Row ──────────────────────────────────────
-
 class _MeasurementRow extends StatelessWidget {
   final _Measurement measurement;
   const _MeasurementRow({required this.measurement});
 
   @override
   Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
     final isPositive = measurement.change > 0;
     final isNegative = measurement.change < 0;
-    // For waist, negative is good. For others, positive is good.
     final isGood = measurement.name == 'Waist' ? isNegative : isPositive;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(
-          horizontal: Spacing.lg, vertical: 14),
+      padding:
+          const EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: 14),
       child: Row(
         children: [
           Expanded(
-            child: Text(measurement.name, style: tt.titleSmall),
-          ),
+              child: Text(measurement.name,
+                  style: Theme.of(context).textTheme.titleSmall)),
           Text(
             '${measurement.value}${measurement.unit}',
             style: const TextStyle(
@@ -1088,8 +939,6 @@ class _MeasurementRow extends StatelessWidget {
   }
 }
 
-// ─── Timeline Entry ───────────────────────────────────────
-
 class _TimelineEntry extends StatelessWidget {
   final _PRChange entry;
   final bool isLast;
@@ -1110,8 +959,7 @@ class _TimelineEntry extends StatelessWidget {
                 children: [
                   const SizedBox(height: 2),
                   Container(
-                    width: 10,
-                    height: 10,
+                    width: 10, height: 10,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: AppTheme.protein,
@@ -1159,4 +1007,142 @@ class _TimelineEntry extends StatelessWidget {
       ),
     );
   }
+}
+
+// ─── Weight Chart Painter ─────────────────────────────────
+
+class _WeightChartPainter extends CustomPainter {
+  final List<_WeightEntry> data;
+  final double goalWeight;
+  final double animProgress;
+
+  _WeightChartPainter({
+    required this.data,
+    required this.goalWeight,
+    required this.animProgress,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (data.isEmpty) return;
+    const padL = 0.0, padR = 16.0, padT = 12.0, padB = 24.0;
+    final chartW = size.width - padL - padR;
+    final chartH = size.height - padT - padB;
+    final weights = data.map((d) => d.weight).toList();
+    final minW = (weights.reduce(math.min) - 2).floorToDouble();
+    final maxW = (weights.reduce(math.max) + 2).ceilToDouble();
+    final range = maxW - minW;
+    double toX(int i) => padL + (i / (data.length - 1)) * chartW;
+    double toY(double w) => padT + (1 - (w - minW) / range) * chartH;
+
+    // Goal line
+    final goalY = toY(goalWeight);
+    final dashPaint = Paint()
+      ..color = AppTheme.accent.withValues(alpha: 0.25)
+      ..strokeWidth = 1;
+    for (double x = padL; x < size.width - padR; x += 8) {
+      canvas.drawLine(Offset(x, goalY), Offset(x + 4, goalY), dashPaint);
+    }
+    final goalTp = TextPainter(
+      text: TextSpan(
+          text: 'Goal ${goalWeight.toStringAsFixed(0)}kg',
+          style: TextStyle(
+              fontSize: 9,
+              color: AppTheme.accent.withValues(alpha: 0.5),
+              fontWeight: FontWeight.w500)),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    goalTp.paint(
+        canvas, Offset(size.width - padR - goalTp.width, goalY - 14));
+
+    // Bezier path
+    final visibleCount =
+        (data.length * animProgress).ceil().clamp(1, data.length);
+    final points = <Offset>[];
+    for (var i = 0; i < visibleCount; i++) {
+      points.add(Offset(toX(i), toY(data[i].weight)));
+    }
+    if (points.length < 2) return;
+
+    final path = Path()..moveTo(points[0].dx, points[0].dy);
+    for (var i = 0; i < points.length - 1; i++) {
+      final p0 = points[i], p1 = points[i + 1];
+      final cpx = (p0.dx + p1.dx) / 2;
+      path.cubicTo(cpx, p0.dy, cpx, p1.dy, p1.dx, p1.dy);
+    }
+
+    // Fill
+    final fillPath = Path.from(path)
+      ..lineTo(points.last.dx, padT + chartH)
+      ..lineTo(points.first.dx, padT + chartH)
+      ..close();
+    canvas.drawPath(
+        fillPath,
+        Paint()
+          ..shader = LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppTheme.weight.withValues(alpha: 0.15),
+              AppTheme.weight.withValues(alpha: 0.0),
+            ],
+          ).createShader(Rect.fromLTWH(0, padT, chartW, chartH)));
+
+    // Line
+    canvas.drawPath(
+        path,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.5
+          ..strokeCap = StrokeCap.round
+          ..shader = const LinearGradient(colors: AppTheme.weightGradient)
+              .createShader(Rect.fromLTWH(padL, 0, chartW, 1)));
+
+    // Glow
+    canvas.drawPath(
+        path,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 6
+          ..strokeCap = StrokeCap.round
+          ..shader = LinearGradient(colors: [
+            AppTheme.weight.withValues(alpha: 0.15),
+            AppTheme.weight.withValues(alpha: 0.08),
+          ]).createShader(Rect.fromLTWH(padL, 0, chartW, 1))
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4));
+
+    // Data points
+    for (final p in points) {
+      canvas.drawCircle(
+          p,
+          4,
+          Paint()
+            ..color = AppTheme.weight.withValues(alpha: 0.15)
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4));
+      canvas.drawCircle(p, 2.5, Paint()..color = AppTheme.weight);
+      canvas.drawCircle(p, 1.2, Paint()..color = Colors.white);
+    }
+
+    // X labels
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    for (var i = 0; i < visibleCount; i += 3) {
+      final d = data[i].date;
+      final tp = TextPainter(
+        text: TextSpan(
+            text: '${months[d.month - 1]} ${d.day}',
+            style: TextStyle(
+                fontSize: 9,
+                color: Colors.white.withValues(alpha: 0.3))),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      tp.paint(canvas, Offset(toX(i) - tp.width / 2, size.height - 14));
+    }
+  }
+
+  @override
+  bool shouldRepaint(_WeightChartPainter old) =>
+      animProgress != old.animProgress;
 }
