@@ -1,0 +1,1162 @@
+import 'dart:math' as math;
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../theme/app_theme.dart';
+import '../widgets/glass_card.dart';
+
+// ─── Data models ──────────────────────────────────────────
+
+class _WeightEntry {
+  final DateTime date;
+  final double weight;
+  const _WeightEntry(this.date, this.weight);
+}
+
+class _PR {
+  final String exercise;
+  final double weightKg;
+  final String date;
+  final bool isRecent;
+  const _PR(this.exercise, this.weightKg, this.date, {this.isRecent = false});
+}
+
+class _Measurement {
+  final String name;
+  final double value;
+  final String unit;
+  final double change;
+  const _Measurement(this.name, this.value, this.unit, this.change);
+}
+
+class _PRChange {
+  final String date;
+  final String change;
+  final String detail;
+  const _PRChange(this.date, this.change, this.detail);
+}
+
+// ─── Screen ───────────────────────────────────────────────
+
+class ProgressScreen extends StatefulWidget {
+  const ProgressScreen({super.key});
+
+  @override
+  State<ProgressScreen> createState() => _ProgressScreenState();
+}
+
+class _ProgressScreenState extends State<ProgressScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _anim;
+
+  // Section animations
+  late final Animation<double> _headerFade;
+  late final Animation<double> _rangeFade;
+  late final Animation<Offset> _rangeSlide;
+  late final Animation<double> _chartFade;
+  late final Animation<Offset> _chartSlide;
+  late final Animation<double> _bmiFade;
+  late final Animation<Offset> _bmiSlide;
+  late final Animation<double> _prFade;
+  late final Animation<Offset> _prSlide;
+  late final Animation<double> _measureFade;
+  late final Animation<Offset> _measureSlide;
+  late final Animation<double> _photoFade;
+  late final Animation<Offset> _photoSlide;
+  late final Animation<double> _historyFade;
+  late final Animation<Offset> _historySlide;
+
+  int _rangeIndex = 2; // default 3M
+
+  static const _rangeLabels = ['1W', '1M', '3M', '6M', '1Y'];
+
+  // ── Demo data ──────────────────────────────────────────
+
+  static final _weightData = List.generate(13, (i) {
+    final date = DateTime(2026, 1, 1).add(Duration(days: i * 7));
+    final w = 85.0 - (i * 0.5) + (math.sin(i * 0.8) * 0.4);
+    return _WeightEntry(date, double.parse(w.toStringAsFixed(1)));
+  });
+
+  static const _goalWeight = 72.0;
+  static const _currentWeight = 78.5;
+  static const _startWeight = 85.0;
+
+  static const _prs = [
+    _PR('Bench Press', 65, 'Mar 28', isRecent: true),
+    _PR('Barbell Squat', 80, 'Mar 25', isRecent: true),
+    _PR('Deadlift', 90, 'Mar 20'),
+    _PR('Overhead Press', 42.5, 'Mar 15'),
+    _PR('Barbell Row', 55, 'Mar 10'),
+  ];
+
+  static const _measurements = [
+    _Measurement('Chest', 40, 'in', 0.5),
+    _Measurement('Waist', 32, 'in', -1.5),
+    _Measurement('Arms', 14, 'in', 0.3),
+    _Measurement('Thighs', 22, 'in', 0.2),
+  ];
+
+  static const _prHistory = [
+    _PRChange('Mar 28, 2026', 'Bench Press: 60kg → 65kg',
+        'Hit 4×10 clean — moved up 5kg'),
+    _PRChange('Mar 25, 2026', 'Squat: 75kg → 80kg',
+        'Depth improved, confident at heavier load'),
+    _PRChange('Mar 20, 2026', 'Deadlift: 85kg → 90kg',
+        'Grip held, back neutral through all reps'),
+    _PRChange('Mar 10, 2026', 'Barbell Row: 50kg → 55kg',
+        'Controlled eccentrics finally paid off'),
+  ];
+
+  // ── Animation helpers ──────────────────────────────────
+
+  Animation<double> _fade(double s, double e) => CurvedAnimation(
+      parent: _anim, curve: Interval(s, e, curve: Curves.easeOut));
+
+  Animation<Offset> _slide(double s, double e) =>
+      Tween<Offset>(begin: const Offset(0, 0.12), end: Offset.zero).animate(
+          CurvedAnimation(
+              parent: _anim,
+              curve: Interval(s, e, curve: Curves.easeOutCubic)));
+
+  @override
+  void initState() {
+    super.initState();
+    _anim = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 1800));
+
+    _headerFade   = _fade(0.00, 0.25);
+    _rangeFade    = _fade(0.05, 0.30);
+    _rangeSlide   = _slide(0.05, 0.35);
+    _chartFade    = _fade(0.10, 0.40);
+    _chartSlide   = _slide(0.10, 0.45);
+    _bmiFade      = _fade(0.20, 0.50);
+    _bmiSlide     = _slide(0.20, 0.55);
+    _prFade       = _fade(0.30, 0.60);
+    _prSlide      = _slide(0.30, 0.65);
+    _measureFade  = _fade(0.40, 0.70);
+    _measureSlide = _slide(0.40, 0.75);
+    _photoFade    = _fade(0.50, 0.80);
+    _photoSlide   = _slide(0.50, 0.85);
+    _historyFade  = _fade(0.55, 0.85);
+    _historySlide = _slide(0.55, 0.90);
+
+    _anim.forward();
+  }
+
+  @override
+  void dispose() {
+    _anim.dispose();
+    super.dispose();
+  }
+
+  Widget _glowOrb(double size, Color color, double alpha) => Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+              colors: [color.withValues(alpha: alpha), Colors.transparent]),
+        ),
+      );
+
+  // ── Build ──────────────────────────────────────────────
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+
+    return Stack(
+      children: [
+        Container(
+            decoration:
+                const BoxDecoration(gradient: AppTheme.backgroundGradient)),
+
+        // Ambient orbs
+        Positioned(
+            top: -60, right: -80, child: _glowOrb(320, AppTheme.weight, 0.10)),
+        Positioned(
+            bottom: 200,
+            left: -100,
+            child: _glowOrb(350, AppTheme.accent, 0.06)),
+        Positioned(
+            top: 400,
+            right: -40,
+            child: _glowOrb(250, AppTheme.protein, 0.05)),
+
+        SafeArea(
+          bottom: false,
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: Spacing.xl),
+
+                // Header
+                FadeTransition(
+                  opacity: _headerFade,
+                  child: Text('Progress', style: tt.displayLarge),
+                ),
+
+                const SizedBox(height: Spacing.lg),
+
+                // Range selector
+                FadeTransition(
+                  opacity: _rangeFade,
+                  child: SlideTransition(
+                    position: _rangeSlide,
+                    child: _buildRangeSelector(),
+                  ),
+                ),
+
+                const SizedBox(height: Spacing.lg),
+
+                // Weight chart
+                FadeTransition(
+                  opacity: _chartFade,
+                  child: SlideTransition(
+                    position: _chartSlide,
+                    child: _buildWeightChart(tt),
+                  ),
+                ),
+
+                const SizedBox(height: Spacing.lg),
+
+                // BMI
+                FadeTransition(
+                  opacity: _bmiFade,
+                  child: SlideTransition(
+                    position: _bmiSlide,
+                    child: _buildBMI(tt),
+                  ),
+                ),
+
+                const SizedBox(height: Spacing.lg),
+
+                // Strength PRs
+                FadeTransition(
+                  opacity: _prFade,
+                  child: SlideTransition(
+                    position: _prSlide,
+                    child: _buildPRs(tt),
+                  ),
+                ),
+
+                const SizedBox(height: Spacing.lg),
+
+                // Measurements
+                FadeTransition(
+                  opacity: _measureFade,
+                  child: SlideTransition(
+                    position: _measureSlide,
+                    child: _buildMeasurements(tt),
+                  ),
+                ),
+
+                const SizedBox(height: Spacing.lg),
+
+                // Photos
+                FadeTransition(
+                  opacity: _photoFade,
+                  child: SlideTransition(
+                    position: _photoSlide,
+                    child: _buildPhotos(tt),
+                  ),
+                ),
+
+                const SizedBox(height: Spacing.lg),
+
+                // PR History
+                FadeTransition(
+                  opacity: _historyFade,
+                  child: SlideTransition(
+                    position: _historySlide,
+                    child: _buildHistory(tt),
+                  ),
+                ),
+
+                const SizedBox(height: 120),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── Range Selector ─────────────────────────────────────
+
+  Widget _buildRangeSelector() {
+    return Row(
+      children: List.generate(_rangeLabels.length, (i) {
+        final active = i == _rangeIndex;
+        return Expanded(
+          child: GestureDetector(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              setState(() => _rangeIndex = i);
+            },
+            child: AnimatedContainer(
+              duration: AppTheme.animFast,
+              margin: EdgeInsets.only(right: i < 4 ? Spacing.sm : 0),
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(999),
+                color: active
+                    ? AppTheme.accent
+                    : Colors.white.withValues(alpha: 0.06),
+                boxShadow: active
+                    ? [
+                        BoxShadow(
+                            color: AppTheme.accent.withValues(alpha: 0.3),
+                            blurRadius: 12)
+                      ]
+                    : null,
+              ),
+              child: Center(
+                child: Text(
+                  _rangeLabels[i],
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                    color: active
+                        ? Colors.black
+                        : Colors.white.withValues(alpha: 0.5),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  // ── Weight Chart ───────────────────────────────────────
+
+  Widget _buildWeightChart(TextTheme tt) {
+    return GlassCard(
+      accentColor: AppTheme.weight,
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+                Spacing.lg, Spacing.lg, Spacing.lg, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('WEIGHT TREND', style: tt.labelMedium),
+                const SizedBox(height: Spacing.sm),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    ShaderMask(
+                      shaderCallback: (b) => const LinearGradient(
+                              colors: AppTheme.weightGradient)
+                          .createShader(
+                              Rect.fromLTWH(0, 0, b.width, b.height)),
+                      child: const Text('78.5',
+                          style: TextStyle(
+                              fontSize: 34,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: -1.0,
+                              height: 1.1)),
+                    ),
+                    const SizedBox(width: 4),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text('kg',
+                          style: tt.bodySmall
+                              ?.copyWith(fontWeight: FontWeight.w600)),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(999),
+                        color: AppTheme.accent.withValues(alpha: 0.12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.arrow_downward_rounded,
+                              size: 12, color: AppTheme.accent),
+                          const SizedBox(width: 2),
+                          Text('6.5 kg',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.accent)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: Spacing.md),
+
+          // Chart
+          SizedBox(
+            height: 180,
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 1200),
+              curve: Curves.easeOutCubic,
+              builder: (context, value, _) {
+                return CustomPaint(
+                  size: Size.infinite,
+                  painter: _WeightChartPainter(
+                    data: _weightData,
+                    goalWeight: _goalWeight,
+                    animProgress: value,
+                  ),
+                );
+              },
+            ),
+          ),
+
+          const SizedBox(height: Spacing.sm),
+
+          // Weight stats row
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+                Spacing.lg, 0, Spacing.lg, Spacing.lg),
+            child: Row(
+              children: [
+                _miniStat('Start', '${_startWeight.toStringAsFixed(0)}kg', tt),
+                _dividerVert(),
+                _miniStat(
+                    'Current', '${_currentWeight.toStringAsFixed(1)}kg', tt),
+                _dividerVert(),
+                _miniStat('Goal', '${_goalWeight.toStringAsFixed(0)}kg', tt),
+                _dividerVert(),
+                _miniStat('Left',
+                    '${(_currentWeight - _goalWeight).toStringAsFixed(1)}kg', tt),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _miniStat(String label, String value, TextTheme tt) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(value,
+              style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: -0.3)),
+          const SizedBox(height: 2),
+          Text(label,
+              style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white.withValues(alpha: 0.4),
+                  letterSpacing: 0.5)),
+        ],
+      ),
+    );
+  }
+
+  Widget _dividerVert() => Container(
+      width: 0.5, height: 28, color: Colors.white.withValues(alpha: 0.08));
+
+  // ── BMI ────────────────────────────────────────────────
+
+  Widget _buildBMI(TextTheme tt) {
+    const bmi = 24.2;
+    const category = 'Normal';
+
+    // BMI ranges: <18.5 Underweight, 18.5-25 Normal, 25-30 Overweight, 30+ Obese
+    final normalizedBmi = ((bmi - 15) / 25).clamp(0.0, 1.0); // 15-40 range
+
+    return GlassCard(
+      padding: const EdgeInsets.all(Spacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('BMI', style: tt.labelMedium),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(999),
+                  color: AppTheme.accent.withValues(alpha: 0.12),
+                ),
+                child: Text(category,
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.accent)),
+              ),
+            ],
+          ),
+          const SizedBox(height: Spacing.md),
+          // BMI value
+          ShaderMask(
+            shaderCallback: (b) =>
+                const LinearGradient(colors: AppTheme.accentGradient)
+                    .createShader(Rect.fromLTWH(0, 0, b.width, b.height)),
+            child: const Text('24.2',
+                style: TextStyle(
+                    fontSize: 34,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: -1.0,
+                    height: 1.1)),
+          ),
+          const SizedBox(height: Spacing.lg),
+          // Gradient bar with marker
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: normalizedBmi),
+            duration: const Duration(milliseconds: 900),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, _) {
+              return Column(
+                children: [
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      // Track
+                      Container(
+                        height: 6,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(3),
+                          gradient: const LinearGradient(
+                            colors: [
+                              Color(0xFF5AC8FA), // underweight — cyan
+                              Color(0xFF34C759), // normal — green
+                              Color(0xFFFF9500), // overweight — orange
+                              Color(0xFFFF2D55), // obese — red
+                            ],
+                            stops: [0.0, 0.35, 0.65, 1.0],
+                          ),
+                        ),
+                      ),
+                      // Marker
+                      Positioned(
+                        left: value *
+                            (MediaQuery.of(context).size.width -
+                                Spacing.lg * 4),
+                        top: -5,
+                        child: Container(
+                          width: 16,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                            border: Border.all(
+                                color: AppTheme.accent, width: 2.5),
+                            boxShadow: [
+                              BoxShadow(
+                                  color:
+                                      AppTheme.accent.withValues(alpha: 0.3),
+                                  blurRadius: 8),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: Spacing.sm),
+                  // Labels
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _bmiLabel('Under', '< 18.5'),
+                      _bmiLabel('Normal', '18.5–25'),
+                      _bmiLabel('Over', '25–30'),
+                      _bmiLabel('Obese', '30+'),
+                    ],
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _bmiLabel(String title, String range) {
+    return Column(
+      children: [
+        Text(title,
+            style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: Colors.white.withValues(alpha: 0.4),
+                letterSpacing: 0.3)),
+        Text(range,
+            style: TextStyle(
+                fontSize: 9,
+                color: Colors.white.withValues(alpha: 0.25))),
+      ],
+    );
+  }
+
+  // ── Strength PRs ───────────────────────────────────────
+
+  Widget _buildPRs(TextTheme tt) {
+    return GlassCard(
+      accentColor: AppTheme.protein,
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+                Spacing.lg, Spacing.lg, Spacing.lg, Spacing.md),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('PERSONAL RECORDS', style: tt.labelMedium),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    color: AppTheme.protein.withValues(alpha: 0.12),
+                  ),
+                  child: Text('${_prs.length} lifts',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.protein)),
+                ),
+              ],
+            ),
+          ),
+          for (var i = 0; i < _prs.length; i++) ...[
+            Container(
+              height: 0.5,
+              margin: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+              color: Colors.white.withValues(alpha: 0.06),
+            ),
+            _PRRow(pr: _prs[i]),
+          ],
+          const SizedBox(height: Spacing.sm),
+        ],
+      ),
+    );
+  }
+
+  // ── Body Measurements ──────────────────────────────────
+
+  Widget _buildMeasurements(TextTheme tt) {
+    return GlassCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+                Spacing.lg, Spacing.lg, Spacing.lg, Spacing.md),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('MEASUREMENTS', style: tt.labelMedium),
+                Text('Last updated: Mar 28',
+                    style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.white.withValues(alpha: 0.3))),
+              ],
+            ),
+          ),
+          for (var i = 0; i < _measurements.length; i++) ...[
+            Container(
+              height: 0.5,
+              margin: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+              color: Colors.white.withValues(alpha: 0.06),
+            ),
+            _MeasurementRow(measurement: _measurements[i]),
+          ],
+          const SizedBox(height: Spacing.sm),
+        ],
+      ),
+    );
+  }
+
+  // ── Progress Photos ────────────────────────────────────
+
+  Widget _buildPhotos(TextTheme tt) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: Spacing.md),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('PROGRESS PHOTOS', style: tt.labelMedium),
+              GestureDetector(
+                onTap: () => HapticFeedback.lightImpact(),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    color: AppTheme.accent.withValues(alpha: 0.12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.add_a_photo_rounded,
+                          size: 14, color: AppTheme.accent),
+                      const SizedBox(width: 4),
+                      Text('Add',
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.accent)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Row(
+          children: [
+            Expanded(child: _photoCard('Jan 1', 'Before')),
+            const SizedBox(width: Spacing.md),
+            Expanded(child: _photoCard('Mar 28', 'Current')),
+          ],
+        ),
+        const SizedBox(height: Spacing.md),
+        Row(
+          children: [
+            Expanded(child: _photoCard('Feb 1', 'Month 1')),
+            const SizedBox(width: Spacing.md),
+            Expanded(child: _photoCard('Mar 1', 'Month 2')),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _photoCard(String date, String label) {
+    return GlassCard(
+      padding: EdgeInsets.zero,
+      child: AspectRatio(
+        aspectRatio: 0.75,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.person_outline_rounded,
+                size: 36, color: Colors.white.withValues(alpha: 0.15)),
+            const SizedBox(height: Spacing.sm),
+            Text(label,
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white.withValues(alpha: 0.5))),
+            const SizedBox(height: 2),
+            Text(date,
+                style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.white.withValues(alpha: 0.3))),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── PR History ─────────────────────────────────────────
+
+  Widget _buildHistory(TextTheme tt) {
+    return GlassCard(
+      accentColor: AppTheme.protein,
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+                Spacing.lg, Spacing.lg, Spacing.lg, Spacing.md),
+            child: Text('PR HISTORY', style: tt.labelMedium),
+          ),
+          for (var i = 0; i < _prHistory.length; i++)
+            _TimelineEntry(
+              entry: _prHistory[i],
+              isLast: i == _prHistory.length - 1,
+            ),
+          const SizedBox(height: Spacing.md),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Weight Chart Painter ─────────────────────────────────
+
+class _WeightChartPainter extends CustomPainter {
+  final List<_WeightEntry> data;
+  final double goalWeight;
+  final double animProgress;
+
+  _WeightChartPainter({
+    required this.data,
+    required this.goalWeight,
+    required this.animProgress,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (data.isEmpty) return;
+
+    const padL = 0.0;
+    const padR = 16.0;
+    const padT = 12.0;
+    const padB = 24.0;
+
+    final chartW = size.width - padL - padR;
+    final chartH = size.height - padT - padB;
+
+    final weights = data.map((d) => d.weight).toList();
+    final minW = (weights.reduce(math.min) - 2).floorToDouble();
+    final maxW = (weights.reduce(math.max) + 2).ceilToDouble();
+    final range = maxW - minW;
+
+    double toX(int i) => padL + (i / (data.length - 1)) * chartW;
+    double toY(double w) => padT + (1 - (w - minW) / range) * chartH;
+
+    // ── Goal line (dashed) ─────────────────────────────
+    final goalY = toY(goalWeight);
+    final dashPaint = Paint()
+      ..color = AppTheme.accent.withValues(alpha: 0.25)
+      ..strokeWidth = 1;
+
+    for (double x = padL; x < size.width - padR; x += 8) {
+      canvas.drawLine(Offset(x, goalY), Offset(x + 4, goalY), dashPaint);
+    }
+
+    // Goal label
+    final goalTp = TextPainter(
+      text: TextSpan(
+          text: 'Goal ${goalWeight.toStringAsFixed(0)}kg',
+          style: TextStyle(
+              fontSize: 9,
+              color: AppTheme.accent.withValues(alpha: 0.5),
+              fontWeight: FontWeight.w500)),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    goalTp.paint(canvas, Offset(size.width - padR - goalTp.width, goalY - 14));
+
+    // ── Build bezier path ──────────────────────────────
+    final visibleCount = (data.length * animProgress).ceil().clamp(1, data.length);
+    final points = <Offset>[];
+    for (var i = 0; i < visibleCount; i++) {
+      points.add(Offset(toX(i), toY(data[i].weight)));
+    }
+
+    if (points.length < 2) return;
+
+    final path = Path()..moveTo(points[0].dx, points[0].dy);
+    for (var i = 0; i < points.length - 1; i++) {
+      final p0 = points[i];
+      final p1 = points[i + 1];
+      final cpx = (p0.dx + p1.dx) / 2;
+      path.cubicTo(cpx, p0.dy, cpx, p1.dy, p1.dx, p1.dy);
+    }
+
+    // ── Gradient fill ──────────────────────────────────
+    final fillPath = Path.from(path)
+      ..lineTo(points.last.dx, padT + chartH)
+      ..lineTo(points.first.dx, padT + chartH)
+      ..close();
+
+    final fillPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          AppTheme.weight.withValues(alpha: 0.15),
+          AppTheme.weight.withValues(alpha: 0.0),
+        ],
+      ).createShader(Rect.fromLTWH(0, padT, chartW, chartH));
+
+    canvas.drawPath(fillPath, fillPaint);
+
+    // ── Line ───────────────────────────────────────────
+    final linePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5
+      ..strokeCap = StrokeCap.round
+      ..shader = const LinearGradient(
+        colors: AppTheme.weightGradient,
+      ).createShader(Rect.fromLTWH(padL, 0, chartW, 1));
+
+    canvas.drawPath(path, linePaint);
+
+    // ── Line glow ──────────────────────────────────────
+    final glowPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 6
+      ..strokeCap = StrokeCap.round
+      ..shader = LinearGradient(
+        colors: [
+          AppTheme.weight.withValues(alpha: 0.15),
+          AppTheme.weight.withValues(alpha: 0.08),
+        ],
+      ).createShader(Rect.fromLTWH(padL, 0, chartW, 1))
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+
+    canvas.drawPath(path, glowPaint);
+
+    // ── Data points ────────────────────────────────────
+    for (var i = 0; i < points.length; i++) {
+      // Outer glow
+      canvas.drawCircle(
+        points[i],
+        4,
+        Paint()
+          ..color = AppTheme.weight.withValues(alpha: 0.15)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+      );
+      // Dot
+      canvas.drawCircle(
+        points[i],
+        2.5,
+        Paint()..color = AppTheme.weight,
+      );
+      canvas.drawCircle(
+        points[i],
+        1.2,
+        Paint()..color = Colors.white,
+      );
+    }
+
+    // ── X-axis labels ──────────────────────────────────
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    for (var i = 0; i < visibleCount; i += 3) {
+      final d = data[i].date;
+      final label = '${months[d.month - 1]} ${d.day}';
+      final tp = TextPainter(
+        text: TextSpan(
+            text: label,
+            style: TextStyle(
+                fontSize: 9,
+                color: Colors.white.withValues(alpha: 0.3))),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      tp.paint(canvas, Offset(toX(i) - tp.width / 2, size.height - 14));
+    }
+  }
+
+  @override
+  bool shouldRepaint(_WeightChartPainter old) =>
+      animProgress != old.animProgress;
+}
+
+// ─── PR Row ───────────────────────────────────────────────
+
+class _PRRow extends StatelessWidget {
+  final _PR pr;
+  const _PRRow({required this.pr});
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+          horizontal: Spacing.lg, vertical: 14),
+      child: Row(
+        children: [
+          // Trophy or dumbbell icon
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: pr.isRecent
+                  ? AppTheme.protein.withValues(alpha: 0.12)
+                  : Colors.white.withValues(alpha: 0.04),
+            ),
+            child: Icon(
+              pr.isRecent
+                  ? Icons.emoji_events_rounded
+                  : Icons.fitness_center_rounded,
+              size: 14,
+              color: pr.isRecent
+                  ? AppTheme.protein
+                  : Colors.white.withValues(alpha: 0.3),
+            ),
+          ),
+          const SizedBox(width: Spacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(pr.exercise, style: tt.titleSmall),
+                Text(pr.date,
+                    style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.white.withValues(alpha: 0.4))),
+              ],
+            ),
+          ),
+          ShaderMask(
+            shaderCallback: (b) =>
+                const LinearGradient(colors: AppTheme.proteinGradient)
+                    .createShader(Rect.fromLTWH(0, 0, b.width, b.height)),
+            child: Text(
+              '${pr.weightKg % 1 == 0 ? pr.weightKg.toInt() : pr.weightKg}kg',
+              style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: -0.3),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Measurement Row ──────────────────────────────────────
+
+class _MeasurementRow extends StatelessWidget {
+  final _Measurement measurement;
+  const _MeasurementRow({required this.measurement});
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    final isPositive = measurement.change > 0;
+    final isNegative = measurement.change < 0;
+    // For waist, negative is good. For others, positive is good.
+    final isGood = measurement.name == 'Waist' ? isNegative : isPositive;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+          horizontal: Spacing.lg, vertical: 14),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(measurement.name, style: tt.titleSmall),
+          ),
+          Text(
+            '${measurement.value}${measurement.unit}',
+            style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+                letterSpacing: -0.3),
+          ),
+          const SizedBox(width: Spacing.sm),
+          if (measurement.change != 0)
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(999),
+                color: (isGood ? AppTheme.accent : AppTheme.fat)
+                    .withValues(alpha: 0.12),
+              ),
+              child: Text(
+                '${isPositive ? '+' : ''}${measurement.change}',
+                style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: isGood ? AppTheme.accent : AppTheme.fat),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Timeline Entry ───────────────────────────────────────
+
+class _TimelineEntry extends StatelessWidget {
+  final _PRChange entry;
+  final bool isLast;
+  const _TimelineEntry({required this.entry, required this.isLast});
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 20,
+              child: Column(
+                children: [
+                  const SizedBox(height: 2),
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppTheme.protein,
+                      boxShadow: [
+                        BoxShadow(
+                            color: AppTheme.protein.withValues(alpha: 0.3),
+                            blurRadius: 6),
+                      ],
+                    ),
+                  ),
+                  if (!isLast)
+                    Expanded(
+                      child: Container(
+                        width: 1,
+                        margin: const EdgeInsets.only(top: 4),
+                        color: Colors.white.withValues(alpha: 0.08),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(width: Spacing.md),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(bottom: isLast ? 0 : Spacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(entry.date,
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white.withValues(alpha: 0.4),
+                            letterSpacing: 0.5)),
+                    const SizedBox(height: Spacing.xs),
+                    Text(entry.change, style: tt.titleSmall),
+                    const SizedBox(height: Spacing.xs),
+                    Text(entry.detail, style: tt.bodySmall),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

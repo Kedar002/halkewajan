@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/stat_ring.dart';
-import '../widgets/insight_banner.dart';
+import '../widgets/glass_card.dart';
 import '../widgets/progress_calendar.dart';
 import '../widgets/todays_calorie_card.dart';
 import '../widgets/weight_goal_card.dart';
@@ -23,15 +23,14 @@ class _HomeScreenState extends State<HomeScreen>
   final ScrollController _scrollController = ScrollController();
   final ValueNotifier<double> _scrollOffset = ValueNotifier(0);
 
-  // 7 sections — reordered for action-first hierarchy
+  // 6 sections — action-first hierarchy, no insight banner
   static const List<List<double>> _intervals = [
-    [0.00, 0.22], // 0: greeting
-    [0.06, 0.32], // 1: insight banner
-    [0.12, 0.40], // 2: hero rings
-    [0.22, 0.50], // 3: diet checklist
-    [0.30, 0.58], // 4: workout
-    [0.38, 0.65], // 5: calorie + weight
-    [0.46, 0.72], // 6: calendar
+    [0.00, 0.25], // 0: greeting
+    [0.08, 0.38], // 1: macro dashboard
+    [0.18, 0.48], // 2: diet checklist
+    [0.28, 0.55], // 3: workout
+    [0.36, 0.62], // 4: calorie + weight
+    [0.44, 0.70], // 5: calendar
   ];
 
   @override
@@ -214,37 +213,26 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ),
 
-                const SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.xl),
 
-                // 1: Insight Banner — context before data
+                // 1: Compact Macro Dashboard
+                _animated(1, _buildMacroDashboard()),
+
+                const SizedBox(height: Spacing.xl),
+
+                // 2: Diet Checklist — primary action
+                _animated(2, const DietChecklist()),
+
+                const SizedBox(height: Spacing.xl),
+
+                // 3: Today's Workout — secondary action
+                _animated(3, const TodaysWorkoutCard()),
+
+                const SizedBox(height: Spacing.xl),
+
+                // 4: Calorie + Weight cards — detailed stats
                 _animated(
-                  1,
-                  const InsightBanner(
-                    message:
-                        "You're 460 kcal below your target — on track for your deficit goal today.",
-                  ),
-                ),
-
-                const SizedBox(height: Spacing.xl),
-
-                // 2: Hero Activity Rings — the visual centerpiece
-                _animated(2, Center(child: _buildHeroRings(context))),
-
-                const SizedBox(height: Spacing.xl),
-
-                // 3: Diet Checklist — primary action
-                _animated(3, const DietChecklist()),
-
-                const SizedBox(height: Spacing.xl),
-
-                // 4: Today's Workout — secondary action
-                _animated(4, const TodaysWorkoutCard()),
-
-                const SizedBox(height: Spacing.xl),
-
-                // 5: Calorie + Weight cards — detailed stats
-                _animated(
-                  5,
+                  4,
                   IntrinsicHeight(
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -259,9 +247,9 @@ class _HomeScreenState extends State<HomeScreen>
 
                 const SizedBox(height: Spacing.xl),
 
-                // 6: Progress Calendar — reflection / history
+                // 5: Progress Calendar — reflection / history
                 _animated(
-                  6,
+                  5,
                   ProgressCalendar(
                     dayResults: ProgressCalendar.generateDemoData(),
                   ),
@@ -277,69 +265,142 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildHeroRings(BuildContext context) {
+  // ── Compact Macro Dashboard ────────────────────────────
+
+  double _cellAnim(double value, int index) {
+    final delay = index * 0.05;
+    return Curves.easeOutCubic
+        .transform(((value - delay) / 0.7).clamp(0.0, 1.0));
+  }
+
+  String _fmtCount(int value) {
+    if (value >= 1000) {
+      return '${value ~/ 1000},${(value % 1000).toString().padLeft(3, '0')}';
+    }
+    return value.toString();
+  }
+
+  Widget _buildMacroDashboard() {
     return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: 1),
+      tween: Tween(begin: 0.0, end: 1.0),
       duration: const Duration(milliseconds: 1200),
-      curve: Curves.easeOutCubic,
+      curve: Curves.linear,
       builder: (context, value, _) {
-        return Stack(
-          alignment: Alignment.center,
+        return GlassCard(
+          padding: const EdgeInsets.symmetric(
+            horizontal: Spacing.md,
+            vertical: Spacing.md,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: _macroCell(
+                  rawValue: 1460,
+                  suffix: '',
+                  label: 'CALORIES',
+                  color: AppTheme.calories,
+                  gradient: AppTheme.caloriesGradient,
+                  progress: 0.74,
+                  animValue: _cellAnim(value, 0),
+                ),
+              ),
+              Expanded(
+                child: _macroCell(
+                  rawValue: 92,
+                  suffix: 'g',
+                  label: 'PROTEIN',
+                  color: AppTheme.protein,
+                  gradient: AppTheme.proteinGradient,
+                  progress: 0.61,
+                  animValue: _cellAnim(value, 1),
+                ),
+              ),
+              Expanded(
+                child: _macroCell(
+                  rawValue: 145,
+                  suffix: 'g',
+                  label: 'CARBS',
+                  color: AppTheme.carbs,
+                  gradient: AppTheme.carbsGradient,
+                  progress: 0.72,
+                  animValue: _cellAnim(value, 2),
+                ),
+              ),
+              Expanded(
+                child: _macroCell(
+                  rawValue: 52,
+                  suffix: 'g',
+                  label: 'FAT',
+                  color: AppTheme.fat,
+                  gradient: AppTheme.fatGradient,
+                  progress: 0.69,
+                  animValue: _cellAnim(value, 3),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _macroCell({
+    required int rawValue,
+    required String suffix,
+    required String label,
+    required Color color,
+    required List<Color> gradient,
+    required double progress,
+    required double animValue,
+  }) {
+    final animated = (rawValue * animValue).round();
+    final display = '${_fmtCount(animated)}$suffix';
+
+    return Opacity(
+      opacity: animValue.clamp(0.0, 1.0),
+      child: Transform.translate(
+        offset: Offset(0, 8 * (1 - animValue.clamp(0.0, 1.0))),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Ambient glow behind rings
-            Container(
-              width: 250,
-              height: 250,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    AppTheme.accent.withValues(alpha: 0.08 * value),
-                    AppTheme.calories.withValues(alpha: 0.04 * value),
-                    Colors.transparent,
-                  ],
-                  stops: const [0.0, 0.5, 1.0],
+            // Mini ring — no center text
+            StatRing(
+              progress: progress * animValue.clamp(0.0, 1.0),
+              color: color,
+              value: '',
+              size: 52,
+              strokeWidth: 5,
+            ),
+            const SizedBox(height: Spacing.sm),
+            // Gradient value text with count-up
+            ShaderMask(
+              shaderCallback: (b) => LinearGradient(colors: gradient)
+                  .createShader(Rect.fromLTWH(0, 0, b.width, b.height)),
+              child: Text(
+                display,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: -0.5,
+                  height: 1.1,
                 ),
               ),
             ),
-            // Activity rings
-            ActivityRings(
-              calorieProgress: 0.74 * value,
-              proteinProgress: 0.61 * value,
-              carbsProgress: 0.72 * value,
-              fatProgress: 0.69 * value,
-              size: 190,
-            ),
-            // Center content
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ShaderMask(
-                  shaderCallback: (bounds) => const LinearGradient(
-                    colors: AppTheme.accentGradient,
-                  ).createShader(
-                      Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
-                  child: Text(
-                    '${(74 * value).round()}%',
-                    style: const TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                      letterSpacing: -1.0,
-                      height: 1.1,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Daily Goal',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
+            const SizedBox(height: 2),
+            // Label
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+                color: Colors.white.withValues(alpha: 0.4),
+                letterSpacing: 1.5,
+              ),
             ),
           ],
-        );
-      },
+        ),
+      ),
     );
   }
 }
