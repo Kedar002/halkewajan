@@ -40,10 +40,10 @@ class BottomNav extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _NavItem(icon: Icons.home_rounded, label: 'Home', isActive: currentIndex == 0, onTap: () => _handleTap(0)),
-                  _NavItem(icon: Icons.restaurant_rounded, label: 'Diet', isActive: currentIndex == 1, onTap: () => _handleTap(1)),
-                  _NavItem(icon: Icons.fitness_center_rounded, label: 'Workout', isActive: currentIndex == 2, onTap: () => _handleTap(2)),
-                  _NavItem(icon: Icons.trending_up_rounded, label: 'Progress', isActive: currentIndex == 3, onTap: () => _handleTap(3)),
+                  _NavItem(icon: Icons.cottage_rounded, label: 'Home', isActive: currentIndex == 0, onTap: () => _handleTap(0)),
+                  _NavItem(icon: Icons.restaurant_menu_rounded, label: 'Diet', isActive: currentIndex == 1, onTap: () => _handleTap(1)),
+                  _NavItem(icon: Icons.sports_gymnastics_rounded, label: 'Workout', isActive: currentIndex == 2, onTap: () => _handleTap(2)),
+                  _NavItem(icon: Icons.insights_rounded, label: 'Progress', isActive: currentIndex == 3, onTap: () => _handleTap(3)),
                   _NavItem(icon: Icons.person_rounded, label: 'Profile', isActive: currentIndex == 4, onTap: () => _handleTap(4)),
                 ],
               ),

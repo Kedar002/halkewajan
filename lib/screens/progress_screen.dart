@@ -61,8 +61,6 @@ class _ProgressScreenState extends State<ProgressScreen>
   late final Animation<Offset> _prSlide;
   late final Animation<double> _measureFade;
   late final Animation<Offset> _measureSlide;
-  late final Animation<double> _photoFade;
-  late final Animation<Offset> _photoSlide;
   late final Animation<double> _historyFade;
   late final Animation<Offset> _historySlide;
 
@@ -136,10 +134,8 @@ class _ProgressScreenState extends State<ProgressScreen>
     _prSlide      = _slide(0.30, 0.65);
     _measureFade  = _fade(0.40, 0.70);
     _measureSlide = _slide(0.40, 0.75);
-    _photoFade    = _fade(0.50, 0.80);
-    _photoSlide   = _slide(0.50, 0.85);
-    _historyFade  = _fade(0.55, 0.85);
-    _historySlide = _slide(0.55, 0.90);
+    _historyFade  = _fade(0.50, 0.80);
+    _historySlide = _slide(0.50, 0.85);
 
     _anim.forward();
   }
@@ -265,16 +261,6 @@ class _ProgressScreenState extends State<ProgressScreen>
               const SizedBox(height: Spacing.lg),
 
               FadeTransition(
-                opacity: _photoFade,
-                child: SlideTransition(
-                  position: _photoSlide,
-                  child: _buildPhotos(tt),
-                ),
-              ),
-
-              const SizedBox(height: Spacing.lg),
-
-              FadeTransition(
                 opacity: _historyFade,
                 child: SlideTransition(
                   position: _historySlide,
@@ -387,7 +373,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.arrow_downward_rounded,
+                          Icon(Icons.trending_down_rounded,
                               size: 12, color: AppTheme.accent),
                           const SizedBox(width: 2),
                           Text(
@@ -466,132 +452,176 @@ class _ProgressScreenState extends State<ProgressScreen>
   Widget _dividerVert() => Container(
       width: 0.5, height: 28, color: Colors.white.withValues(alpha: 0.08));
 
-  // ── BMI ────────────────────────────────────────────────
+  // ── BMI Records ────────────────────────────────────────
 
   Widget _buildBMI(TextTheme tt) {
-    const bmi = 24.2;
-    const category = 'Normal';
-    final normalizedBmi = ((bmi - 15) / 25).clamp(0.0, 1.0);
-
     return GlassCard(
-      padding: const EdgeInsets.all(Spacing.lg),
+      accentColor: AppTheme.accent,
+      padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('BMI', style: tt.labelMedium),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(999),
-                  color: AppTheme.accent.withValues(alpha: 0.12),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+                Spacing.lg, Spacing.lg, Spacing.lg, Spacing.md),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('BMI RECORDS', style: tt.labelMedium),
+                GestureDetector(
+                  onTap: () => HapticFeedback.lightImpact(),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(999),
+                      color: AppTheme.accent.withValues(alpha: 0.12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.upload_file_rounded,
+                            size: 14, color: AppTheme.accent),
+                        const SizedBox(width: 4),
+                        Text('Upload',
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.accent)),
+                      ],
+                    ),
+                  ),
                 ),
-                child: Text(category,
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.accent)),
-              ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: Spacing.md),
-          ShaderMask(
-            shaderCallback: (b) =>
-                const LinearGradient(colors: AppTheme.accentGradient)
-                    .createShader(Rect.fromLTWH(0, 0, b.width, b.height)),
-            child: const Text('24.2',
-                style: TextStyle(
-                    fontSize: 34,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    letterSpacing: -1.0,
-                    height: 1.1)),
+          // Record entries
+          _bmiRecordRow(
+            date: 'Mar 25, 2026',
+            bmi: '24.2',
+            category: 'Normal',
+            fileType: 'PDF',
+            icon: Icons.picture_as_pdf_rounded,
           ),
-          const SizedBox(height: Spacing.lg),
-          TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0, end: normalizedBmi),
-            duration: const Duration(milliseconds: 900),
-            curve: Curves.easeOutCubic,
-            builder: (context, value, _) {
-              return Column(
-                children: [
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      return Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          Container(
-                            height: 6,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(3),
-                              gradient: const LinearGradient(
-                                colors: [
-                                  Color(0xFF5AC8FA),
-                                  Color(0xFF34C759),
-                                  Color(0xFFFF9500),
-                                  Color(0xFFFF2D55),
-                                ],
-                                stops: [0.0, 0.35, 0.65, 1.0],
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            left: value * (constraints.maxWidth - 16),
-                            top: -5,
-                            child: Container(
-                              width: 16, height: 16,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white,
-                                border: Border.all(
-                                    color: AppTheme.accent, width: 2.5),
-                                boxShadow: [
-                                  BoxShadow(
-                                      color: AppTheme.accent
-                                          .withValues(alpha: 0.3),
-                                      blurRadius: 8),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                  const SizedBox(height: Spacing.sm),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _bmiLabel('Under', '< 18.5'),
-                      _bmiLabel('Normal', '18.5–25'),
-                      _bmiLabel('Over', '25–30'),
-                      _bmiLabel('Obese', '30+'),
-                    ],
-                  ),
-                ],
-              );
-            },
+          _bmiRecordRow(
+            date: 'Feb 20, 2026',
+            bmi: '25.1',
+            category: 'Overweight',
+            fileType: 'Photo',
+            icon: Icons.image_rounded,
           ),
+          _bmiRecordRow(
+            date: 'Jan 15, 2026',
+            bmi: '26.3',
+            category: 'Overweight',
+            fileType: 'PDF',
+            icon: Icons.picture_as_pdf_rounded,
+            isLast: true,
+          ),
+          const SizedBox(height: Spacing.sm),
         ],
       ),
     );
   }
 
-  Widget _bmiLabel(String title, String range) => Column(children: [
-        Text(title,
-            style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: Colors.white.withValues(alpha: 0.4),
-                letterSpacing: 0.3)),
-        Text(range,
-            style: TextStyle(
-                fontSize: 9,
-                color: Colors.white.withValues(alpha: 0.25))),
-      ]);
+  Widget _bmiRecordRow({
+    required String date,
+    required String bmi,
+    required String category,
+    required String fileType,
+    required IconData icon,
+    bool isLast = false,
+  }) {
+    final isNormal = category == 'Normal';
+
+    return Column(
+      children: [
+        Container(
+          height: 0.5,
+          margin: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+          color: Colors.white.withValues(alpha: 0.06),
+        ),
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => HapticFeedback.lightImpact(),
+            splashColor: AppTheme.accent.withValues(alpha: 0.05),
+            highlightColor: Colors.transparent,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: Spacing.lg, vertical: 14),
+              child: Row(
+                children: [
+                  // File type icon
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withValues(alpha: 0.06),
+                    ),
+                    child: Icon(icon,
+                        size: 14,
+                        color: Colors.white.withValues(alpha: 0.4)),
+                  ),
+                  const SizedBox(width: Spacing.md),
+                  // Date and file type
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(date,
+                            style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white)),
+                        Text(fileType,
+                            style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.white
+                                    .withValues(alpha: 0.4))),
+                      ],
+                    ),
+                  ),
+                  // BMI value
+                  ShaderMask(
+                    shaderCallback: (b) => const LinearGradient(
+                            colors: AppTheme.accentGradient)
+                        .createShader(
+                            Rect.fromLTWH(0, 0, b.width, b.height)),
+                    child: Text(bmi,
+                        style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            letterSpacing: -0.3)),
+                  ),
+                  const SizedBox(width: Spacing.sm),
+                  // Category badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(999),
+                      color: (isNormal ? AppTheme.accent : AppTheme.calories)
+                          .withValues(alpha: 0.12),
+                    ),
+                    child: Text(category,
+                        style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: isNormal
+                                ? AppTheme.accent
+                                : AppTheme.calories)),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
   // ── Strength PRs ───────────────────────────────────────
 
@@ -674,89 +704,6 @@ class _ProgressScreenState extends State<ProgressScreen>
       ),
     );
   }
-
-  // ── Progress Photos ────────────────────────────────────
-
-  Widget _buildPhotos(TextTheme tt) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: Spacing.md),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('PROGRESS PHOTOS', style: tt.labelMedium),
-              GestureDetector(
-                onTap: () => HapticFeedback.lightImpact(),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(999),
-                    color: AppTheme.accent.withValues(alpha: 0.12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.add_a_photo_rounded,
-                          size: 14, color: AppTheme.accent),
-                      const SizedBox(width: 4),
-                      Text('Add',
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.accent)),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        Row(
-          children: [
-            Expanded(child: _photoCard('Jan 1', 'Before')),
-            const SizedBox(width: Spacing.md),
-            Expanded(child: _photoCard('Mar 28', 'Current')),
-          ],
-        ),
-        const SizedBox(height: Spacing.md),
-        Row(
-          children: [
-            Expanded(child: _photoCard('Feb 1', 'Month 1')),
-            const SizedBox(width: Spacing.md),
-            Expanded(child: _photoCard('Mar 1', 'Month 2')),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _photoCard(String date, String label) => GlassCard(
-        padding: EdgeInsets.zero,
-        child: AspectRatio(
-          aspectRatio: 0.75,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.person_outline_rounded,
-                  size: 36, color: Colors.white.withValues(alpha: 0.15)),
-              const SizedBox(height: Spacing.sm),
-              Text(label,
-                  style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white.withValues(alpha: 0.5))),
-              const SizedBox(height: 2),
-              Text(date,
-                  style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.white.withValues(alpha: 0.3))),
-            ],
-          ),
-        ),
-      );
 
   // ── PR History ─────────────────────────────────────────
 

@@ -288,7 +288,7 @@ class _TrackingScreenState extends State<TrackingScreen>
         children: [
           Row(
             children: [
-              Icon(Icons.monitor_weight_outlined,
+              Icon(Icons.monitor_weight_rounded,
                   size: 18,
                   color: AppTheme.weight.withValues(alpha: 0.7)),
               const SizedBox(width: Spacing.sm),
@@ -346,7 +346,7 @@ class _TrackingScreenState extends State<TrackingScreen>
         children: [
           Row(
             children: [
-              Icon(Icons.emoji_events_outlined,
+              Icon(Icons.emoji_events_rounded,
                   size: 18,
                   color: AppTheme.protein.withValues(alpha: 0.7)),
               const SizedBox(width: Spacing.sm),
@@ -497,7 +497,7 @@ class _TrackingScreenState extends State<TrackingScreen>
         children: [
           Row(
             children: [
-              Icon(Icons.accessibility_new_rounded,
+              Icon(Icons.height_rounded,
                   size: 18,
                   color: Colors.white.withValues(alpha: 0.5)),
               const SizedBox(width: Spacing.sm),

@@ -111,7 +111,7 @@ class _TodaysWorkoutCardState extends State<TodaysWorkoutCard>
                       Row(
                         children: [
                           Icon(
-                            Icons.timer_outlined,
+                            Icons.schedule_rounded,
                             size: 14,
                             color: Colors.white.withValues(alpha: 0.5),
                           ),

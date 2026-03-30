@@ -492,7 +492,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>
       child: Center(
         child: Column(
           children: [
-            Icon(Icons.spa_rounded,
+            Icon(Icons.self_improvement_rounded,
                 size: 32, color: Colors.white.withValues(alpha: 0.3)),
             const SizedBox(height: Spacing.md),
             Text('Rest Day', style: tt.titleMedium),
@@ -509,7 +509,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (prev != null)
-                    _adjacentDayChip(prev, Icons.arrow_back_rounded),
+                    _adjacentDayChip(prev, Icons.chevron_left_rounded),
                   if (prev != null && next != null)
                     Padding(
                       padding: const EdgeInsets.symmetric(
@@ -520,7 +520,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>
                               fontSize: 16)),
                     ),
                   if (next != null)
-                    _adjacentDayChip(next, Icons.arrow_forward_rounded),
+                    _adjacentDayChip(next, Icons.chevron_right_rounded),
                 ],
               ),
             ],
@@ -591,7 +591,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>
                     Spacing.lg, Spacing.md, Spacing.lg, Spacing.sm),
                 child: Row(
                   children: [
-                    Icon(Icons.timer_outlined,
+                    Icon(Icons.schedule_rounded,
                         size: 14,
                         color: Colors.white.withValues(alpha: 0.5)),
                     const SizedBox(width: Spacing.xs),
@@ -794,7 +794,7 @@ class _WorkoutScreenState extends State<WorkoutScreen>
                           turns: _historyExpanded ? 0.5 : 0,
                           duration: AppTheme.animFast,
                           child: Icon(
-                            Icons.keyboard_arrow_down_rounded,
+                            Icons.expand_more_rounded,
                             size: 18,
                             color: Colors.white.withValues(alpha: 0.3),
                           ),
@@ -908,7 +908,7 @@ class _EditableExerciseRow extends StatelessWidget {
                   AnimatedRotation(
                     turns: isExpanded ? 0.5 : 0,
                     duration: AppTheme.animFast,
-                    child: Icon(Icons.keyboard_arrow_down_rounded,
+                    child: Icon(Icons.expand_more_rounded,
                         size: 18,
                         color: Colors.white.withValues(alpha: 0.3)),
                   ),
@@ -1085,7 +1085,7 @@ class _EditPanelState extends State<_EditPanel> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.delete_outline_rounded,
+                    Icon(Icons.delete_rounded,
                         size: 14,
                         color: AppTheme.fat.withValues(alpha: 0.7)),
                     const SizedBox(width: 4),
