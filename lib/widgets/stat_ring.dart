@@ -8,6 +8,7 @@ class StatRing extends StatelessWidget {
   final String unit;
   final double size;
   final double strokeWidth;
+  final Gradient? valueGradient;
 
   const StatRing({
     super.key,
@@ -17,10 +18,31 @@ class StatRing extends StatelessWidget {
     this.unit = '',
     this.size = 160,
     this.strokeWidth = 12,
+    this.valueGradient,
   });
 
   @override
   Widget build(BuildContext context) {
+    Widget valueWidget = Text(
+      value,
+      style: TextStyle(
+        fontSize: size * 0.2,
+        fontWeight: FontWeight.w700,
+        color: Colors.white,
+        letterSpacing: -1.0,
+        height: 1.1,
+      ),
+    );
+
+    if (valueGradient != null) {
+      valueWidget = ShaderMask(
+        shaderCallback: (bounds) => valueGradient!.createShader(
+          Rect.fromLTWH(0, 0, bounds.width, bounds.height),
+        ),
+        child: valueWidget,
+      );
+    }
+
     return SizedBox(
       width: size,
       height: size,
@@ -34,16 +56,7 @@ class StatRing extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: size * 0.2,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1D1D1F),
-                  letterSpacing: -1.0,
-                  height: 1.1,
-                ),
-              ),
+              valueWidget,
               if (unit.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
@@ -52,7 +65,7 @@ class StatRing extends StatelessWidget {
                     style: TextStyle(
                       fontSize: size * 0.08,
                       fontWeight: FontWeight.w500,
-                      color: const Color(0x801D1D1F),
+                      color: Colors.white.withValues(alpha: 0.5),
                       letterSpacing: 0.5,
                     ),
                   ),

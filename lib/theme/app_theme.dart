@@ -11,14 +11,14 @@ class Spacing {
 }
 
 class AppTheme {
-  // Core palette
-  static const Color ink = Color(0xFF1D1D1F);
-  static const Color canvas = Color(0xFFF8F8FA);
-  static const Color surface = Color(0xFFFFFFFF);
-  static const Color accent = Color(0xFF34C759);
-  static const Color secondary = Color(0x801D1D1F);
-  static const Color divider = Color(0x1A1D1D1F);
-  static const Color whisper = Color(0x0D1D1D1F);
+  // Core palette — dark mode
+  static const Color ink = Color(0xFFFFFFFF);
+  static const Color canvas = Color(0xFF0A0A0F);
+  static const Color surface = Color(0xFF111116);
+  static const Color accent = Color(0xFF00E676);
+  static const Color secondary = Color(0x80FFFFFF);
+  static const Color divider = Color(0x1AFFFFFF);
+  static const Color whisper = Color(0x0DFFFFFF);
 
   // Semantic data colors — charts and data badges ONLY
   static const Color calories = Color(0xFFFF9500);
@@ -26,6 +26,16 @@ class AppTheme {
   static const Color weight = Color(0xFF007AFF);
   static const Color fat = Color(0xFFFF2D55);
   static const Color carbs = Color(0xFF5AC8FA);
+
+  // Gradient pairs for accent/data text
+  static const List<Color> accentGradient = [
+    Color(0xFF00E676),
+    Color(0xFF00C853),
+  ];
+  static const List<Color> caloriesGradient = [
+    Color(0xFFFFB74D),
+    Color(0xFFFF9500),
+  ];
 
   // Radii
   static const double radiusCard = 24.0;
@@ -37,37 +47,37 @@ class AppTheme {
   static const BorderRadius borderRadiusPill =
       BorderRadius.all(Radius.circular(999));
 
-  // The living gradient background — soft color orbs behind glass
+  // Dark void gradient — deep tinted blacks
   static const LinearGradient backgroundGradient = LinearGradient(
     begin: Alignment(-0.8, -1.0),
     end: Alignment(0.8, 1.0),
     colors: [
-      Color(0xFFF2F0F7), // lavender whisper
-      Color(0xFFEDF5F0), // mint whisper
-      Color(0xFFF5F0EC), // peach whisper
-      Color(0xFFEEF1F7), // sky whisper
+      Color(0xFF0A0A12), // deep blue-black
+      Color(0xFF0D0E14), // slate void
+      Color(0xFF0A0C10), // dark teal hint
+      Color(0xFF08080D), // pure void
     ],
     stops: [0.0, 0.35, 0.65, 1.0],
   );
 
   static SystemUiOverlayStyle get systemOverlay => const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
+        statusBarIconBrightness: Brightness.light,
         systemNavigationBarColor: Colors.transparent,
-        systemNavigationBarIconBrightness: Brightness.dark,
+        systemNavigationBarIconBrightness: Brightness.light,
       );
 
   static ThemeData get theme => ThemeData(
         useMaterial3: true,
         scaffoldBackgroundColor: canvas,
-        colorScheme: const ColorScheme.light(
+        colorScheme: const ColorScheme.dark(
           primary: accent,
-          onPrimary: surface,
+          onPrimary: canvas,
           secondary: secondary,
           surface: surface,
           onSurface: ink,
           error: fat,
-          onError: surface,
+          onError: canvas,
         ),
         textTheme: const TextTheme(
           displayLarge: TextStyle(
@@ -124,20 +134,20 @@ class AppTheme {
           bodySmall: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w400,
-            color: secondary,
+            color: Color(0x80FFFFFF),
             height: 1.4,
           ),
           labelLarge: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w500,
-            color: secondary,
+            color: Color(0x80FFFFFF),
             letterSpacing: 0.5,
           ),
           labelMedium: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w600,
-            color: secondary,
-            letterSpacing: 0.8,
+            color: Color(0x66FFFFFF),
+            letterSpacing: 1.2,
           ),
         ),
         cardTheme: CardThemeData(
@@ -152,7 +162,7 @@ class AppTheme {
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: accent,
-            foregroundColor: surface,
+            foregroundColor: canvas,
             elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
             shape: RoundedRectangleBorder(borderRadius: borderRadiusPill),

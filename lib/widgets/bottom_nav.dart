@@ -19,10 +19,10 @@ class BottomNav extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.75),
+            color: Colors.black.withValues(alpha: 0.6),
             border: Border(
               top: BorderSide(
-                color: Colors.black.withValues(alpha: 0.06),
+                color: Colors.white.withValues(alpha: 0.06),
                 width: 0.5,
               ),
             ),
@@ -97,10 +97,32 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 24,
-              color: isActive ? AppTheme.accent : AppTheme.secondary,
+            // Glow behind active icon
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                if (isActive)
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          AppTheme.accent.withValues(alpha: 0.3),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
+                Icon(
+                  icon,
+                  size: 24,
+                  color: isActive
+                      ? AppTheme.accent
+                      : Colors.white.withValues(alpha: 0.4),
+                ),
+              ],
             ),
             const SizedBox(height: 3),
             Text(
@@ -108,7 +130,9 @@ class _NavItem extends StatelessWidget {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                color: isActive ? AppTheme.accent : AppTheme.secondary,
+                color: isActive
+                    ? AppTheme.accent
+                    : Colors.white.withValues(alpha: 0.4),
                 letterSpacing: 0.1,
               ),
             ),

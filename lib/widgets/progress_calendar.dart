@@ -16,17 +16,9 @@ enum DayResult {
 }
 
 /// Zerodha-style month-grouped progress calendar.
-///
-/// Each month is a mini calendar block (7 rows x N week-columns) with proper
-/// weekday alignment and blank spaces. Months flow left → right, scrollable.
 class ProgressCalendar extends StatelessWidget {
-  /// Map of DateTime (year/month/day) → DayResult.
   final Map<DateTime, DayResult> dayResults;
-
-  /// How many months to show (counting back from current). Default 12.
   final int monthCount;
-
-  /// Summary text at bottom-left.
   final String? summaryText;
 
   const ProgressCalendar({
@@ -53,7 +45,6 @@ class ProgressCalendar extends StatelessWidget {
       final roll = rng.nextDouble();
 
       if (roll < 0.20) {
-        // 20% no data
         continue;
       } else if (roll < 0.40) {
         data[key] = DayResult.missed;
@@ -69,7 +60,6 @@ class ProgressCalendar extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final today = DateTime.now();
 
-    // Build month data from oldest to newest
     final months = <_MonthData>[];
     for (var i = monthCount - 1; i >= 0; i--) {
       var year = today.year;
@@ -81,7 +71,6 @@ class ProgressCalendar extends StatelessWidget {
       months.add(_buildMonth(year, month, today));
     }
 
-    // Calculate total width
     var totalWidth = 0.0;
     for (var i = 0; i < months.length; i++) {
       totalWidth += months[i].weekCount * _step;
@@ -143,7 +132,10 @@ class ProgressCalendar extends StatelessWidget {
                   const SizedBox(width: Spacing.sm),
                   _LegendItem(color: AppTheme.fat, label: 'Missed'),
                   const SizedBox(width: Spacing.sm),
-                  _LegendItem(color: AppTheme.divider, label: 'No data'),
+                  _LegendItem(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    label: 'No data',
+                  ),
                 ],
               ),
             ],
@@ -156,14 +148,11 @@ class ProgressCalendar extends StatelessWidget {
   _MonthData _buildMonth(int year, int month, DateTime today) {
     final firstDay = DateTime(year, month, 1);
     final daysInMonth = DateTime(year, month + 1, 0).day;
-    // Monday = 0 ... Sunday = 6
     final firstWeekday = (firstDay.weekday - 1) % 7;
 
-    // How many week-columns this month needs
     final totalSlots = firstWeekday + daysInMonth;
     final weekCount = (totalSlots / 7).ceil();
 
-    // Build grid: weekCount columns x 7 rows, null = empty cell
     final grid = List.generate(
       weekCount,
       (_) => List<_CellData?>.filled(7, null),
@@ -179,7 +168,7 @@ class ProgressCalendar extends StatelessWidget {
 
       DayResult? result;
       if (isFuture) {
-        result = null; // future — render as empty
+        result = null;
       } else {
         final key = DateTime(year, month, d);
         result = dayResults[key] ?? DayResult.noData;
@@ -204,7 +193,7 @@ class ProgressCalendar extends StatelessWidget {
 class _MonthData {
   final String label;
   final int weekCount;
-  final List<List<_CellData?>> grid; // [week][dayOfWeek]
+  final List<List<_CellData?>> grid;
 
   _MonthData({
     required this.label,
@@ -243,9 +232,9 @@ class _CalendarPainter extends CustomPainter {
       case DayResult.hit:
         return AppTheme.accent;
       case DayResult.missed:
-        return const Color(0xFFFF2D55); // AppTheme.fat
+        return AppTheme.fat;
       case DayResult.noData:
-        return AppTheme.divider;
+        return Colors.white.withValues(alpha: 0.08);
     }
   }
 
@@ -255,14 +244,41 @@ class _CalendarPainter extends CustomPainter {
     final cellRadius = Radius.circular(3);
     final paint = Paint()..style = PaintingStyle.fill;
 
+    // Glow paint for hit/missed cells — light bleed on dark
+    final glowPaint = Paint()
+      ..style = PaintingStyle.fill
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
+
     var xOffset = 0.0;
 
     for (final month in months) {
-      // Draw day cells
+      // Pass 1: glow behind colored cells
       for (var w = 0; w < month.weekCount; w++) {
         for (var d = 0; d < 7; d++) {
           final cell = month.grid[w][d];
-          if (cell == null) continue; // no day here — blank space
+          if (cell == null || cell.isFuture) continue;
+          if (cell.result != DayResult.hit && cell.result != DayResult.missed) {
+            continue;
+          }
+
+          final color = _colorForResult(cell.result, cell.isFuture);
+          glowPaint.color = color.withValues(alpha: 0.25);
+          final rect = RRect.fromLTRBR(
+            xOffset + w * step,
+            d * step,
+            xOffset + w * step + cellSize,
+            d * step + cellSize,
+            cellRadius,
+          );
+          canvas.drawRRect(rect, glowPaint);
+        }
+      }
+
+      // Pass 2: solid cells
+      for (var w = 0; w < month.weekCount; w++) {
+        for (var d = 0; d < 7; d++) {
+          final cell = month.grid[w][d];
+          if (cell == null) continue;
 
           final color = _colorForResult(cell.result, cell.isFuture);
           if (color == Colors.transparent) continue;
@@ -279,22 +295,21 @@ class _CalendarPainter extends CustomPainter {
         }
       }
 
-      // Draw month label below the grid
+      // Month label
       final monthWidth = month.weekCount * step - gap;
       final tp = TextPainter(
         text: TextSpan(
           text: month.label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.w600,
-            color: AppTheme.secondary,
+            color: Colors.white.withValues(alpha: 0.4),
             letterSpacing: 0.5,
           ),
         ),
         textDirection: TextDirection.ltr,
       )..layout();
 
-      // Center the label under its month block
       final labelX = xOffset + (monthWidth - tp.width) / 2;
       tp.paint(canvas, Offset(labelX, gridHeight + 6));
 
@@ -329,10 +344,10 @@ class _LegendItem extends StatelessWidget {
         const SizedBox(width: 3),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.w500,
-            color: AppTheme.secondary,
+            color: Colors.white.withValues(alpha: 0.5),
           ),
         ),
       ],

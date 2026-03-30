@@ -5,7 +5,6 @@ class GlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsets padding;
   final double blur;
-  final double opacity;
   final BorderRadius? borderRadius;
 
   const GlassCard({
@@ -13,7 +12,6 @@ class GlassCard extends StatelessWidget {
     required this.child,
     this.padding = const EdgeInsets.all(24),
     this.blur = 30.0,
-    this.opacity = 0.55,
     this.borderRadius,
   });
 
@@ -29,35 +27,33 @@ class GlassCard extends StatelessWidget {
           padding: padding,
           decoration: BoxDecoration(
             borderRadius: radius,
-            // Multi-layer glass: base tint + top highlight
+            // Dark glass — barely visible surface with top-edge highlight
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.white.withValues(alpha: opacity + 0.15),
-                Colors.white.withValues(alpha: opacity),
-                Colors.white.withValues(alpha: opacity - 0.05),
+                Colors.white.withValues(alpha: 0.09),
+                Colors.white.withValues(alpha: 0.05),
+                Colors.white.withValues(alpha: 0.03),
               ],
               stops: const [0.0, 0.5, 1.0],
             ),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.6),
+              color: Colors.white.withValues(alpha: 0.08),
               width: 0.5,
             ),
             boxShadow: [
-              // Soft outer shadow for depth
+              // Deep drop shadow for depth
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-                spreadRadius: 0,
+                color: Colors.black.withValues(alpha: 0.5),
+                blurRadius: 24,
+                offset: const Offset(0, 12),
               ),
-              // Inner light refraction
+              // Tight inner highlight on top edge
               BoxShadow(
-                color: Colors.white.withValues(alpha: 0.7),
+                color: Colors.white.withValues(alpha: 0.04),
                 blurRadius: 1,
                 offset: const Offset(0, 0.5),
-                spreadRadius: 0,
               ),
             ],
           ),

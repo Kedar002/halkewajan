@@ -3,131 +3,103 @@ import '../theme/app_theme.dart';
 import 'glass_card.dart';
 import 'stat_ring.dart';
 
-/// Compact calorie summary card for the home dashboard.
-/// Shows a small ring + consumed/remaining/goal + macro dots.
 class TodaysCalorieCard extends StatelessWidget {
   final int consumed;
-  final int goal;
-  final int protein;
-  final int carbs;
-  final int fat;
+  final int burned;
+  final int deficit;
 
   const TodaysCalorieCard({
     super.key,
     this.consumed = 1320,
-    this.goal = 2000,
-    this.protein = 85,
-    this.carbs = 140,
-    this.fat = 32,
+    this.burned = 2280,
+    this.deficit = 500,
   });
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final remaining = (goal - consumed).clamp(0, goal);
-    final progress = (consumed / goal).clamp(0.0, 1.0);
+
+    final targetIntake = burned - deficit;
+    final remaining = targetIntake - consumed;
+    final progress = (consumed / targetIntake).clamp(0.0, 1.0);
+    final isOver = remaining < 0;
+
+    final String goalText;
+    if (deficit > 0) {
+      goalText = '$deficit cal deficit goal';
+    } else if (deficit < 0) {
+      goalText = '${-deficit} cal surplus goal';
+    } else {
+      goalText = 'Maintenance goal';
+    }
 
     return GlassCard(
-      padding: const EdgeInsets.all(Spacing.lg),
-      child: Row(
-        children: [
-          // Compact ring
-          StatRing(
-            progress: progress,
-            color: AppTheme.calories,
-            value: '$consumed',
-            unit: 'kcal',
-            size: 96,
-            strokeWidth: 10,
-          ),
-
-          const SizedBox(width: Spacing.lg),
-
-          // Right side: remaining + macros
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Remaining insight
-                Text(
-                  '$remaining kcal left',
-                  style: textTheme.titleMedium,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'of $goal goal',
-                  style: textTheme.bodySmall,
-                ),
-
-                const SizedBox(height: Spacing.md),
-
-                // Macro dots row
-                Row(
-                  children: [
-                    _MacroDot(
-                      color: AppTheme.protein,
-                      label: 'P',
-                      value: '${protein}g',
-                    ),
-                    const SizedBox(width: Spacing.md),
-                    _MacroDot(
-                      color: AppTheme.carbs,
-                      label: 'C',
-                      value: '${carbs}g',
-                    ),
-                    const SizedBox(width: Spacing.md),
-                    _MacroDot(
-                      color: AppTheme.fat,
-                      label: 'F',
-                      value: '${fat}g',
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
+      padding: const EdgeInsets.symmetric(
+        horizontal: Spacing.lg,
+        vertical: Spacing.xl,
       ),
-    );
-  }
-}
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.0, end: progress),
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeOutCubic,
+        builder: (context, animatedProgress, _) {
+          final animatedConsumed = progress > 0
+              ? (consumed * (animatedProgress / progress)).round()
+              : 0;
 
-/// Tiny colored dot + value label for a single macro.
-class _MacroDot extends StatelessWidget {
-  final Color color;
-  final String label;
-  final String value;
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Ambient glow behind ring
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 150,
+                    height: 150,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          (isOver ? AppTheme.fat : AppTheme.calories)
+                              .withValues(alpha: 0.12),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
+                  StatRing(
+                    progress: animatedProgress,
+                    color: isOver ? AppTheme.fat : AppTheme.calories,
+                    value: '$animatedConsumed',
+                    unit: 'of $targetIntake kcal',
+                    size: 110,
+                    strokeWidth: 11,
+                    valueGradient: LinearGradient(
+                      colors: isOver
+                          ? const [AppTheme.fat, Color(0xFFFF6B6B)]
+                          : AppTheme.caloriesGradient,
+                    ),
+                  ),
+                ],
+              ),
 
-  const _MacroDot({
-    required this.color,
-    required this.label,
-    required this.value,
-  });
+              const SizedBox(height: Spacing.lg),
 
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 6,
-          height: 6,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
-        ),
-        const SizedBox(width: Spacing.xs),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.ink,
-          ),
-        ),
-      ],
+              Text(
+                isOver
+                    ? '${-remaining} kcal over target'
+                    : '$remaining kcal left to eat',
+                style: textTheme.titleMedium,
+              ),
+
+              const SizedBox(height: Spacing.xs),
+
+              Text(goalText, style: textTheme.bodySmall),
+            ],
+          );
+        },
+      ),
     );
   }
 }
