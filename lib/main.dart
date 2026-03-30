@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'theme/app_theme.dart';
 import 'screens/home_screen.dart';
+import 'screens/diet_screen.dart';
 import 'widgets/bottom_nav.dart';
 
 void main() {
@@ -54,6 +55,7 @@ class _AppShellState extends State<AppShell> {
       case 0:
         return const HomeScreen();
       case 1:
+        return const DietScreen();
       case 2:
       case 3:
       case 4:
