@@ -37,7 +37,8 @@
       "Bash(\"$ADB\" -s emulator-5554 shell pm list packages -3)",
       "Bash(\"$ADB\" -s emulator-5554 shell pm uninstall com.example.fitflow)",
       "Bash(\"$ADB\" -s emulator-5554 shell pm uninstall com.example.orin)",
-      "Bash(\"$ADB\" -s emulator-5554 shell pm uninstall com.example.financesensei)"
+      "Bash(\"$ADB\" -s emulator-5554 shell pm uninstall com.example.financesensei)",
+      "Bash(grep -r 'class BackdropGroup' C:/Users/Kedar/AppData/Local/Pub/Cache/hosted/pub.dev/ --include=*.dart)"
     ]
   }
 }

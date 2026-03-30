@@ -13,7 +13,7 @@ class AppBackground extends StatelessWidget {
         // Background image — fills entire screen
         Positioned.fill(
           child: Image.asset(
-            'assets/images/bg.jpg',
+            'assets/images/bg.png',
             fit: BoxFit.cover,
           ),
         ),

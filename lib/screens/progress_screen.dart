@@ -178,156 +178,115 @@ class _ProgressScreenState extends State<ProgressScreen>
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
 
-    return Stack(
-      children: [
-        AppBackground(
-          child: SafeArea(
-          bottom: false,
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: Spacing.xl),
+    return AppBackground(
+      child: SafeArea(
+        bottom: false,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: Spacing.xl),
 
-                // Header with + button
-                FadeTransition(
-                  opacity: _headerFade,
-                  child: Row(
-                    children: [
-                      Text('Progress', style: tt.displayLarge),
-                      const Spacer(),
-                      GestureDetector(
-                        onTap: _openTracking,
-                        child: Container(
-                          width: 40, height: 40,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppTheme.accent.withValues(alpha: 0.12),
-                          ),
-                          child: const Icon(Icons.add_rounded,
-                              size: 22, color: AppTheme.accent),
+              // Header with + button
+              FadeTransition(
+                opacity: _headerFade,
+                child: Row(
+                  children: [
+                    Text('Progress', style: tt.displayLarge),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: _openTracking,
+                      child: Container(
+                        width: 40, height: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppTheme.accent.withValues(alpha: 0.12),
                         ),
+                        child: const Icon(Icons.add_rounded,
+                            size: 22, color: AppTheme.accent),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
+              ),
 
-                const SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
 
-                FadeTransition(
-                  opacity: _rangeFade,
-                  child: SlideTransition(
-                    position: _rangeSlide,
-                    child: _buildRangeSelector(),
-                  ),
+              FadeTransition(
+                opacity: _rangeFade,
+                child: SlideTransition(
+                  position: _rangeSlide,
+                  child: _buildRangeSelector(),
                 ),
+              ),
 
-                const SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
 
-                FadeTransition(
-                  opacity: _chartFade,
-                  child: SlideTransition(
-                    position: _chartSlide,
-                    child: _buildWeightChart(tt),
-                  ),
+              FadeTransition(
+                opacity: _chartFade,
+                child: SlideTransition(
+                  position: _chartSlide,
+                  child: _buildWeightChart(tt),
                 ),
+              ),
 
-                const SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
 
-                FadeTransition(
-                  opacity: _bmiFade,
-                  child: SlideTransition(
-                    position: _bmiSlide,
-                    child: _buildBMI(tt),
-                  ),
+              FadeTransition(
+                opacity: _bmiFade,
+                child: SlideTransition(
+                  position: _bmiSlide,
+                  child: _buildBMI(tt),
                 ),
+              ),
 
-                const SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
 
-                FadeTransition(
-                  opacity: _prFade,
-                  child: SlideTransition(
-                    position: _prSlide,
-                    child: _buildPRs(tt),
-                  ),
+              FadeTransition(
+                opacity: _prFade,
+                child: SlideTransition(
+                  position: _prSlide,
+                  child: _buildPRs(tt),
                 ),
+              ),
 
-                const SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
 
-                FadeTransition(
-                  opacity: _measureFade,
-                  child: SlideTransition(
-                    position: _measureSlide,
-                    child: _buildMeasurements(tt),
-                  ),
+              FadeTransition(
+                opacity: _measureFade,
+                child: SlideTransition(
+                  position: _measureSlide,
+                  child: _buildMeasurements(tt),
                 ),
+              ),
 
-                const SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
 
-                FadeTransition(
-                  opacity: _photoFade,
-                  child: SlideTransition(
-                    position: _photoSlide,
-                    child: _buildPhotos(tt),
-                  ),
+              FadeTransition(
+                opacity: _photoFade,
+                child: SlideTransition(
+                  position: _photoSlide,
+                  child: _buildPhotos(tt),
                 ),
+              ),
 
-                const SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
 
-                FadeTransition(
-                  opacity: _historyFade,
-                  child: SlideTransition(
-                    position: _historySlide,
-                    child: _buildHistory(tt),
-                  ),
+              FadeTransition(
+                opacity: _historyFade,
+                child: SlideTransition(
+                  position: _historySlide,
+                  child: _buildHistory(tt),
                 ),
+              ),
 
-                const SizedBox(height: 120),
-              ],
-            ),
+              const SizedBox(height: 120),
+            ],
           ),
         ),
-        ),
-
-        // Floating "Log Progress" button
-        Positioned(
-          bottom: 90,
-          left: Spacing.lg,
-          right: Spacing.lg,
-          child: GestureDetector(
-            onTap: _openTracking,
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(999),
-                color: AppTheme.accent,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.accent.withValues(alpha: 0.35),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.edit_rounded, size: 18, color: Colors.black),
-                  SizedBox(width: Spacing.sm),
-                  Text('Log Progress',
-                      style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black,
-                          letterSpacing: 0.2)),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
