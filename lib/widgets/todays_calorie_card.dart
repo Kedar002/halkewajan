@@ -26,17 +26,17 @@ class TodaysCalorieCard extends StatelessWidget {
 
     final String goalText;
     if (deficit > 0) {
-      goalText = '$deficit cal deficit goal';
+      goalText = '$deficit cal deficit';
     } else if (deficit < 0) {
-      goalText = '${-deficit} cal surplus goal';
+      goalText = '${-deficit} cal surplus';
     } else {
-      goalText = 'Maintenance goal';
+      goalText = 'Maintenance';
     }
 
     return GlassCard(
       padding: const EdgeInsets.symmetric(
-        horizontal: Spacing.lg,
-        vertical: Spacing.xl,
+        horizontal: Spacing.md,
+        vertical: Spacing.lg,
       ),
       child: TweenAnimationBuilder<double>(
         tween: Tween(begin: 0.0, end: progress),
@@ -55,8 +55,8 @@ class TodaysCalorieCard extends StatelessWidget {
                 alignment: Alignment.center,
                 children: [
                   Container(
-                    width: 150,
-                    height: 150,
+                    width: 110,
+                    height: 110,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
@@ -72,9 +72,9 @@ class TodaysCalorieCard extends StatelessWidget {
                     progress: animatedProgress,
                     color: isOver ? AppTheme.fat : AppTheme.calories,
                     value: '$animatedConsumed',
-                    unit: 'of $targetIntake kcal',
-                    size: 110,
-                    strokeWidth: 11,
+                    unit: 'of $targetIntake',
+                    size: 85,
+                    strokeWidth: 9,
                     valueGradient: LinearGradient(
                       colors: isOver
                           ? const [AppTheme.fat, Color(0xFFFF6B6B)]
@@ -84,13 +84,16 @@ class TodaysCalorieCard extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.md),
 
               Text(
                 isOver
-                    ? '${-remaining} kcal over target'
-                    : '$remaining kcal left to eat',
-                style: textTheme.titleMedium,
+                    ? '${-remaining} over'
+                    : '$remaining kcal left',
+                style: textTheme.titleSmall?.copyWith(
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.center,
               ),
 
               const SizedBox(height: Spacing.xs),

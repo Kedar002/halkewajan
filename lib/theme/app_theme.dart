@@ -36,6 +36,10 @@ class AppTheme {
     Color(0xFFFFB74D),
     Color(0xFFFF9500),
   ];
+  static const List<Color> weightGradient = [
+    Color(0xFF42A5F5),
+    Color(0xFF007AFF),
+  ];
 
   // Radii
   static const double radiusCard = 24.0;

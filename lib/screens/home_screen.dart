@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/progress_calendar.dart';
 import '../widgets/todays_calorie_card.dart';
+import '../widgets/weight_goal_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -175,12 +176,21 @@ class _HomeScreenState extends State<HomeScreen>
 
                 const SizedBox(height: Spacing.md),
 
-                // Calorie card — slides up + fades in
+                // Calorie + Weight cards — side by side
                 FadeTransition(
                   opacity: _calorieOpacity,
                   child: SlideTransition(
                     position: _calorieSlide,
-                    child: const TodaysCalorieCard(),
+                    child: IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: const [
+                          Expanded(child: TodaysCalorieCard()),
+                          SizedBox(width: Spacing.md),
+                          Expanded(child: WeightGoalCard()),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
 
