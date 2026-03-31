@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
+import '../models/diet_models.dart';
+import '../screens/diet_plans_screen.dart';
 import 'glass_card.dart';
 
 // ─── Data ─────────────────────────────────────────────────
@@ -96,37 +98,109 @@ class _DietChecklistState extends State<DietChecklist>
             padding: const EdgeInsets.fromLTRB(
               Spacing.lg, Spacing.lg, Spacing.lg, Spacing.md,
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
                   children: [
-                    Text("TODAY'S MEALS", style: textTheme.labelMedium),
-                    const SizedBox(height: Spacing.xs),
-                    Text(
-                      '$_completedCount of ${_meals.length} completed',
-                      style: textTheme.bodySmall,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("TODAY'S MEALS", style: textTheme.labelMedium),
+                          const SizedBox(height: Spacing.xs),
+                          Text(
+                            '$_completedCount of ${_meals.length} completed',
+                            style: textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Change Plan button
+                    GestureDetector(
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        final today = DateTime.now().weekday - 1;
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => DietPlansScreen(
+                              selectForDay: today,
+                              selectForDayName: const [
+                                'Monday', 'Tuesday', 'Wednesday', 'Thursday',
+                                'Friday', 'Saturday', 'Sunday',
+                              ][today],
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: AppTheme.calories.withValues(alpha: 0.10),
+                          borderRadius: AppTheme.borderRadiusPill,
+                          border: Border.all(
+                              color: AppTheme.calories.withValues(alpha: 0.2)),
+                        ),
+                        child: Text(
+                          'Change Plan',
+                          style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.calories),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: Spacing.sm),
+                    // Progress percentage badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.calories.withValues(alpha: 0.12),
+                        borderRadius: AppTheme.borderRadiusPill,
+                      ),
+                      child: Text(
+                        '${(_completedCount * 100 / _meals.length).round()}%',
+                        style: textTheme.labelLarge?.copyWith(
+                          color: AppTheme.calories,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
+                      ),
                     ),
                   ],
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppTheme.calories.withValues(alpha: 0.12),
-                    borderRadius: AppTheme.borderRadiusPill,
-                  ),
-                  child: Text(
-                    '${(_completedCount * 100 / _meals.length).round()}%',
-                    style: textTheme.labelLarge?.copyWith(
-                      color: AppTheme.calories,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
+                // Show active plan name if one is assigned today
+                Builder(builder: (context) {
+                  final today = DateTime.now().weekday - 1;
+                  final plan = DietPlansStore.instance.getPlanForDay(today);
+                  if (plan == null) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: Spacing.sm),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 5, height: 5,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: plan.tagColor,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          plan.name,
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: plan.tagColor.withValues(alpha: 0.8)),
+                        ),
+                      ],
                     ),
-                  ),
-                ),
+                  );
+                }),
               ],
             ),
           ),

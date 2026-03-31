@@ -3,20 +3,10 @@ import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_background.dart';
 import '../widgets/glass_card.dart';
+import '../models/diet_models.dart';
+import 'diet_plans_screen.dart';
 
 // ─── Data ─────────────────────────────────────────────────
-
-class _Meal {
-  final String type;
-  final IconData icon;
-  final List<String> items;
-  final int calories;
-  final int protein;
-  final int carbs;
-  final int fat;
-  const _Meal(this.type, this.icon, this.items, this.calories,
-      {this.protein = 0, this.carbs = 0, this.fat = 0});
-}
 
 class _Recipe {
   final String name;
@@ -80,109 +70,10 @@ class _DietScreenState extends State<DietScreen>
   ];
 
   static const _dayLetters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-
-  // ── Meal plans per day (with macros) ───────────────────
-
-  static const _plans = <int, List<_Meal>>{
-    0: [
-      _Meal('Breakfast', Icons.light_mode_rounded,
-          ['Egg white omelette', 'Whole wheat toast', 'Green tea'], 350,
-          protein: 28, carbs: 35, fat: 10),
-      _Meal('Lunch', Icons.wb_sunny_rounded,
-          ['Chicken breast & brown rice', 'Dal tadka'], 580,
-          protein: 42, carbs: 55, fat: 18),
-      _Meal('Dinner', Icons.dark_mode_rounded,
-          ['Grilled fish', 'Sautéed veggies', 'Roti'], 520,
-          protein: 38, carbs: 40, fat: 20),
-      _Meal('Snack', Icons.emoji_food_beverage_rounded,
-          ['Protein shake', 'Banana'], 280,
-          protein: 25, carbs: 30, fat: 6),
-    ],
-    1: [
-      _Meal('Breakfast', Icons.light_mode_rounded,
-          ['Overnight oats & nuts'], 320,
-          protein: 12, carbs: 45, fat: 12),
-      _Meal('Lunch', Icons.wb_sunny_rounded,
-          ['Paneer tikka wrap', 'Raita'], 490,
-          protein: 28, carbs: 50, fat: 16),
-      _Meal('Dinner', Icons.dark_mode_rounded,
-          ['Moong dal khichdi', 'Papad'], 420,
-          protein: 18, carbs: 60, fat: 10),
-      _Meal('Snack', Icons.emoji_food_beverage_rounded,
-          ['Greek yogurt', 'Almonds'], 180,
-          protein: 14, carbs: 12, fat: 10),
-    ],
-    2: [
-      _Meal('Breakfast', Icons.light_mode_rounded,
-          ['Egg white omelette', 'Whole wheat toast', 'Green tea'], 350,
-          protein: 28, carbs: 35, fat: 10),
-      _Meal('Lunch', Icons.wb_sunny_rounded,
-          ['Chicken breast & brown rice', 'Dal tadka'], 580,
-          protein: 42, carbs: 55, fat: 18),
-      _Meal('Dinner', Icons.dark_mode_rounded,
-          ['Grilled fish', 'Sautéed veggies', 'Roti'], 520,
-          protein: 38, carbs: 40, fat: 20),
-      _Meal('Snack', Icons.emoji_food_beverage_rounded,
-          ['Protein shake', 'Banana'], 280,
-          protein: 25, carbs: 30, fat: 6),
-    ],
-    3: [
-      _Meal('Breakfast', Icons.light_mode_rounded,
-          ['Overnight oats & nuts'], 320,
-          protein: 12, carbs: 45, fat: 12),
-      _Meal('Lunch', Icons.wb_sunny_rounded,
-          ['Paneer tikka wrap', 'Raita'], 490,
-          protein: 28, carbs: 50, fat: 16),
-      _Meal('Dinner', Icons.dark_mode_rounded,
-          ['Moong dal khichdi', 'Papad'], 420,
-          protein: 18, carbs: 60, fat: 10),
-      _Meal('Snack', Icons.emoji_food_beverage_rounded,
-          ['Greek yogurt', 'Almonds'], 180,
-          protein: 14, carbs: 12, fat: 10),
-    ],
-    4: [
-      _Meal('Breakfast', Icons.light_mode_rounded,
-          ['Poha with peanuts', 'Chai'], 300,
-          protein: 10, carbs: 42, fat: 10),
-      _Meal('Lunch', Icons.wb_sunny_rounded,
-          ['Rajma chawal', 'Green salad'], 520,
-          protein: 22, carbs: 65, fat: 14),
-      _Meal('Dinner', Icons.dark_mode_rounded,
-          ['Tandoori chicken', 'Mint chutney', 'Roti'], 560,
-          protein: 40, carbs: 38, fat: 22),
-      _Meal('Snack', Icons.emoji_food_beverage_rounded,
-          ['Whey protein', 'Apple'], 250,
-          protein: 28, carbs: 25, fat: 4),
-    ],
-    5: [
-      _Meal('Breakfast', Icons.light_mode_rounded,
-          ['Idli sambar'], 280,
-          protein: 8, carbs: 48, fat: 6),
-      _Meal('Lunch', Icons.wb_sunny_rounded,
-          ['Chole with rice', 'Pickle'], 540,
-          protein: 20, carbs: 70, fat: 16),
-      _Meal('Dinner', Icons.dark_mode_rounded,
-          ['Grilled paneer', 'Quinoa salad'], 480,
-          protein: 32, carbs: 40, fat: 18),
-      _Meal('Snack', Icons.emoji_food_beverage_rounded,
-          ['Mixed nuts', 'Seasonal fruit'], 220,
-          protein: 8, carbs: 22, fat: 12),
-    ],
-    6: [
-      _Meal('Breakfast', Icons.light_mode_rounded,
-          ['Dosa', 'Coconut chutney'], 350,
-          protein: 8, carbs: 50, fat: 14),
-      _Meal('Lunch', Icons.wb_sunny_rounded,
-          ['Chicken biryani', 'Raita'], 620,
-          protein: 35, carbs: 65, fat: 22),
-      _Meal('Dinner', Icons.dark_mode_rounded,
-          ['Tomato soup', 'Multigrain bread'], 320,
-          protein: 12, carbs: 40, fat: 10),
-      _Meal('Snack', Icons.emoji_food_beverage_rounded,
-          ['Protein bar', 'Green tea'], 200,
-          protein: 20, carbs: 18, fat: 8),
-    ],
-  };
+  static const _fullDayNames = [
+    'Monday', 'Tuesday', 'Wednesday', 'Thursday',
+    'Friday', 'Saturday', 'Sunday',
+  ];
 
   static const _recipes = [
     _Recipe('Chicken Tikka', 380, 'High Protein', AppTheme.protein),
@@ -242,13 +133,28 @@ class _DietScreenState extends State<DietScreen>
     super.dispose();
   }
 
-  // ── Computed macros for selected day ───────────────────
+  // ── Data from plan store ───────────────────────────────
 
-  List<_Meal> get _meals => _plans[_selectedDay] ?? [];
-  int get _dayTotal => _meals.fold(0, (s, m) => s + m.calories);
-  int get _dayProtein => _meals.fold(0, (s, m) => s + m.protein);
-  int get _dayCarbs => _meals.fold(0, (s, m) => s + m.carbs);
-  int get _dayFat => _meals.fold(0, (s, m) => s + m.fat);
+  List<DietMeal> get _meals =>
+      DietPlansStore.instance.getPlanForDay(_selectedDay)?.meals ?? [];
+  int get _dayTotal   => _meals.fold(0, (s, m) => s + m.totalCalories);
+  int get _dayProtein => _meals.fold(0, (s, m) => s + m.totalProtein);
+  int get _dayCarbs   => _meals.fold(0, (s, m) => s + m.totalCarbs);
+  int get _dayFat     => _meals.fold(0, (s, m) => s + m.totalFat);
+
+  Future<void> _openPlansForDay() async {
+    HapticFeedback.lightImpact();
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => DietPlansScreen(
+          selectForDay: _selectedDay,
+          selectForDayName: _fullDayNames[_selectedDay],
+        ),
+      ),
+    );
+    if (mounted) setState(() {});
+  }
 
   // ── Build ──────────────────────────────────────────────
 
@@ -267,9 +173,50 @@ class _DietScreenState extends State<DietScreen>
             children: [
               const SizedBox(height: Spacing.xl),
 
+              // ── Header row with My Plans button ─────────
               FadeTransition(
                 opacity: _headerFade,
-                child: Text('Diet', style: tt.displayLarge),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Diet', style: tt.displayLarge),
+                    GestureDetector(
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const DietPlansScreen(),
+                          ),
+                        ).then((_) { if (mounted) setState(() {}); });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 7),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(999),
+                          color: AppTheme.calories.withValues(alpha: 0.10),
+                          border: Border.all(
+                              color:
+                                  AppTheme.calories.withValues(alpha: 0.2)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.restaurant_menu_rounded,
+                                size: 14, color: AppTheme.calories),
+                            const SizedBox(width: 5),
+                            Text('My Plans',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.calories)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
               const SizedBox(height: Spacing.lg),
@@ -279,6 +226,17 @@ class _DietScreenState extends State<DietScreen>
                 child: SlideTransition(
                   position: _selectorSlide,
                   child: _buildDaySelector(),
+                ),
+              ),
+
+              const SizedBox(height: Spacing.md),
+
+              // ── Plan banner ───────────────────────────────
+              FadeTransition(
+                opacity: _selectorFade,
+                child: SlideTransition(
+                  position: _selectorSlide,
+                  child: _buildPlanBanner(tt),
                 ),
               ),
 
@@ -349,52 +307,162 @@ class _DietScreenState extends State<DietScreen>
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: List.generate(7, (i) {
         final active = i == _selectedDay;
+        final hasPlan = DietPlansStore.instance.isDayAssigned(i);
         return GestureDetector(
           onTap: () {
             HapticFeedback.lightImpact();
-            setState(() => _selectedDay = i);
+            setState(() {
+              _selectedDay = i;
+              _expandedMeal = null;
+            });
           },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: 40, height: 40,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: active
-                  ? AppTheme.calories
-                  : Colors.white.withValues(alpha: 0.06),
-              boxShadow: active
-                  ? [BoxShadow(color: AppTheme.calories.withValues(alpha: 0.35), blurRadius: 12)]
-                  : null,
-            ),
-            child: Center(
-              child: Text(
-                _dayLetters[i],
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: 40, height: 40,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
                   color: active
-                      ? Colors.white
-                      : Colors.white.withValues(alpha: 0.5),
+                      ? AppTheme.calories
+                      : Colors.white.withValues(alpha: 0.06),
+                  boxShadow: active
+                      ? [BoxShadow(color: AppTheme.calories.withValues(alpha: 0.35), blurRadius: 12)]
+                      : null,
+                ),
+                child: Center(
+                  child: Text(
+                    _dayLetters[i],
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                      color: active
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: 0.5),
+                    ),
+                  ),
                 ),
               ),
-            ),
+              const SizedBox(height: 4),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: 4, height: 4,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: hasPlan
+                      ? (active
+                          ? Colors.white
+                          : AppTheme.calories.withValues(alpha: 0.5))
+                      : Colors.transparent,
+                ),
+              ),
+            ],
           ),
         );
       }),
     );
   }
 
+  // ── Plan Banner ────────────────────────────────────────
+
+  Widget _buildPlanBanner(TextTheme tt) {
+    final plan = DietPlansStore.instance.getPlanForDay(_selectedDay);
+    return Row(
+      children: [
+        Expanded(
+          child: plan == null
+              ? Text(
+                  'No plan for this day',
+                  style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.white.withValues(alpha: 0.3)),
+                )
+              : Row(
+                  children: [
+                    Container(
+                      width: 6, height: 6,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: plan.tagColor,
+                        boxShadow: [
+                          BoxShadow(
+                              color: plan.tagColor.withValues(alpha: 0.5),
+                              blurRadius: 4),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: Spacing.sm),
+                    Flexible(
+                      child: Text(plan.name,
+                          style: tt.titleSmall,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
+                    ),
+                    const SizedBox(width: Spacing.sm),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(999),
+                        color: plan.tagColor.withValues(alpha: 0.14),
+                      ),
+                      child: Text(plan.tag,
+                          style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: plan.tagColor)),
+                    ),
+                  ],
+                ),
+        ),
+        GestureDetector(
+          onTap: _openPlansForDay,
+          child: Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(999),
+              color: AppTheme.calories.withValues(alpha: 0.10),
+              border: Border.all(
+                  color: AppTheme.calories.withValues(alpha: 0.2)),
+            ),
+            child: Text(
+              plan == null ? 'Assign Plan' : 'Change',
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.calories),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   // ── Hero Summary Card ──────────────────────────────────
 
   Widget _buildHeroSummary(TextTheme tt) {
+    final plan = DietPlansStore.instance.getPlanForDay(_selectedDay);
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
       child: GlassCard(
-        key: ValueKey('hero_$_selectedDay'),
+        key: ValueKey('hero_${_selectedDay}_${plan?.id}'),
         accentColor: AppTheme.calories,
         padding: const EdgeInsets.all(Spacing.lg),
         child: Column(
           children: [
+            if (plan != null) ...[
+              Text(
+                plan.name,
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: AppTheme.calories.withValues(alpha: 0.7),
+                    letterSpacing: 0.3),
+              ),
+              const SizedBox(height: 6),
+            ],
             // Large calorie number
             ShaderMask(
               shaderCallback: (b) => const LinearGradient(
@@ -496,55 +564,118 @@ class _DietScreenState extends State<DietScreen>
   // ── Consolidated Meal Plan ─────────────────────────────
 
   Widget _buildMealPlan(TextTheme tt) {
+    final plan = DietPlansStore.instance.getPlanForDay(_selectedDay);
     final meals = _meals;
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
       child: Column(
-        key: ValueKey('meals_$_selectedDay'),
+        key: ValueKey('meals_${_selectedDay}_${plan?.id}'),
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('MEAL PLAN', style: tt.labelMedium),
           const SizedBox(height: Spacing.md),
           GlassCard(
-            accentColor: AppTheme.calories,
+            accentColor: plan == null ? null : AppTheme.calories,
             padding: EdgeInsets.zero,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                      Spacing.lg, Spacing.md, Spacing.lg, Spacing.sm),
-                  child: Row(
+            child: plan == null
+                ? _buildNoPlanState(tt)
+                : Column(
                     children: [
-                      Text('${meals.length} meals', style: tt.bodySmall),
-                      const Spacer(),
-                      Text('Tap to edit',
-                          style: TextStyle(
-                              fontSize: 11,
-                              color: AppTheme.calories.withValues(alpha: 0.5))),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                            Spacing.lg, Spacing.md, Spacing.lg, Spacing.sm),
+                        child: Row(
+                          children: [
+                            Text(
+                              '${meals.length} meal${meals.length == 1 ? '' : 's'}',
+                              style: tt.bodySmall,
+                            ),
+                            const Spacer(),
+                            GestureDetector(
+                              onTap: _openPlansForDay,
+                              child: Text('Change Plan',
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppTheme.calories
+                                          .withValues(alpha: 0.6))),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (meals.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                              Spacing.lg, Spacing.sm, Spacing.lg, Spacing.lg),
+                          child: Text(
+                            'No meals in this plan yet.\nEdit the plan to add meals.',
+                            style: tt.bodySmall,
+                            textAlign: TextAlign.center,
+                          ),
+                        )
+                      else
+                        for (var i = 0; i < meals.length; i++) ...[
+                          Container(
+                            height: 0.5,
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: Spacing.lg),
+                            color: Colors.white.withValues(alpha: 0.06),
+                          ),
+                          _MealRow(
+                            meal: meals[i],
+                            isExpanded: _expandedMeal == i,
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              setState(() {
+                                _expandedMeal =
+                                    _expandedMeal == i ? null : i;
+                              });
+                            },
+                          ),
+                        ],
+                      const SizedBox(height: Spacing.sm),
                     ],
                   ),
-                ),
-                for (var i = 0; i < meals.length; i++) ...[
-                  Container(
-                    height: 0.5,
-                    margin: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-                    color: Colors.white.withValues(alpha: 0.06),
-                  ),
-                  _MealRow(
-                    meal: meals[i],
-                    isExpanded: _expandedMeal == i,
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      setState(() {
-                        _expandedMeal = _expandedMeal == i ? null : i;
-                      });
-                    },
-                  ),
-                ],
-                const SizedBox(height: Spacing.sm),
-              ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoPlanState(TextTheme tt) {
+    return Padding(
+      padding: const EdgeInsets.all(Spacing.lg),
+      child: Column(
+        children: [
+          Icon(Icons.restaurant_menu_rounded,
+              size: 36, color: Colors.white.withValues(alpha: 0.14)),
+          const SizedBox(height: Spacing.md),
+          Text(
+            'No plan assigned for ${_fullDayNames[_selectedDay]}',
+            style: tt.bodySmall,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: Spacing.md),
+          GestureDetector(
+            onTap: _openPlansForDay,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 13),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                gradient: const LinearGradient(
+                    colors: AppTheme.caloriesGradient),
+              ),
+              child: const Text(
+                'Assign a Plan',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white),
+              ),
             ),
           ),
+          const SizedBox(height: Spacing.sm),
         ],
       ),
     );
@@ -879,7 +1010,7 @@ class _DietScreenState extends State<DietScreen>
 // ─── Meal Row (consolidated) ─────────────────────────────
 
 class _MealRow extends StatelessWidget {
-  final _Meal meal;
+  final DietMeal meal;
   final bool isExpanded;
   final VoidCallback onTap;
 
@@ -892,9 +1023,10 @@ class _MealRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
-    final preview = meal.items.length <= 2
-        ? meal.items.join(', ')
-        : '${meal.items.take(2).join(', ')} +${meal.items.length - 2}';
+    final names = meal.foods.map((f) => f.name).toList();
+    final preview = names.length <= 2
+        ? names.join(', ')
+        : '${names.take(2).join(', ')} +${names.length - 2}';
 
     return Material(
       color: Colors.transparent,
@@ -925,7 +1057,7 @@ class _MealRow extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(meal.type, style: tt.titleSmall),
+                        Text(meal.name, style: tt.titleSmall),
                         if (!isExpanded) ...[
                           const SizedBox(height: 2),
                           Text(preview,
@@ -942,7 +1074,7 @@ class _MealRow extends StatelessWidget {
                     shaderCallback: (b) => const LinearGradient(
                       colors: AppTheme.caloriesGradient,
                     ).createShader(Rect.fromLTWH(0, 0, b.width, b.height)),
-                    child: Text('${meal.calories}',
+                    child: Text('${meal.totalCalories}',
                         style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -974,7 +1106,7 @@ class _MealRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  for (final item in meal.items)
+                  for (final food in meal.foods)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 6),
                       child: Row(
@@ -988,11 +1120,15 @@ class _MealRow extends StatelessWidget {
                           ),
                           const SizedBox(width: Spacing.sm),
                           Expanded(
-                            child: Text(item,
+                            child: Text(food.name,
                                 style: TextStyle(
                                     fontSize: 13,
                                     color: Colors.white.withValues(alpha: 0.6))),
                           ),
+                          Text('${food.calories} kcal',
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.white.withValues(alpha: 0.3))),
                         ],
                       ),
                     ),
@@ -1000,11 +1136,11 @@ class _MealRow extends StatelessWidget {
                   // Macro breakdown for this meal
                   Row(
                     children: [
-                      _macroChip('P', '${meal.protein}g', AppTheme.protein),
+                      _macroChip('P', '${meal.totalProtein}g', AppTheme.protein),
                       const SizedBox(width: Spacing.sm),
-                      _macroChip('C', '${meal.carbs}g', AppTheme.carbs),
+                      _macroChip('C', '${meal.totalCarbs}g', AppTheme.carbs),
                       const SizedBox(width: Spacing.sm),
-                      _macroChip('F', '${meal.fat}g', AppTheme.fat),
+                      _macroChip('F', '${meal.totalFat}g', AppTheme.fat),
                     ],
                   ),
                 ],
