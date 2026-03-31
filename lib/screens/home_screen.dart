@@ -22,6 +22,8 @@ class _HomeScreenState extends State<HomeScreen>
   late final List<Animation<double>> _fades;
   late final List<Animation<Offset>> _slides;
 
+  static const _userName = 'Kedar';
+
   // 5 sections — action-first hierarchy
   static const List<List<double>> _intervals = [
     [0.00, 0.25], // 0: greeting
@@ -125,7 +127,20 @@ class _HomeScreenState extends State<HomeScreen>
                       style: textTheme.labelMedium,
                     ),
                     const SizedBox(height: Spacing.sm),
-                    Text(_greeting(), style: textTheme.displayLarge),
+                    Text(
+                      '${_greeting()},',
+                      style: textTheme.titleLarge?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.6),
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _userName,
+                      style: textTheme.displayLarge,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 ),
               ),
