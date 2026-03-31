@@ -331,88 +331,154 @@ class _ProgressScreenState extends State<ProgressScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ── Header ──────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(
                 Spacing.lg, Spacing.lg, Spacing.lg, 0),
-            child: Column(
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('WEIGHT TREND', style: tt.labelMedium),
-                const SizedBox(height: Spacing.sm),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                // Left: label + hero number + unit
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ShaderMask(
-                      shaderCallback: (b) => const LinearGradient(
-                              colors: AppTheme.weightGradient)
-                          .createShader(
-                              Rect.fromLTWH(0, 0, b.width, b.height)),
-                      child: Text(_currentWeight.toStringAsFixed(1),
-                          style: const TextStyle(
-                              fontSize: 34,
-                              fontWeight: FontWeight.w700,
+                    Text('WEIGHT TREND', style: tt.labelMedium),
+                    const SizedBox(height: Spacing.xs),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        // Hero weight — gradient-masked for Gleb glow feel
+                        ShaderMask(
+                          shaderCallback: (b) => const LinearGradient(
+                            colors: AppTheme.weightGradient,
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ).createShader(Rect.fromLTWH(0, 0, b.width, b.height)),
+                          child: Text(
+                            _currentWeight.toStringAsFixed(1),
+                            style: const TextStyle(
+                              fontSize: 38,
+                              fontWeight: FontWeight.w800,
                               color: Colors.white,
-                              letterSpacing: -1.0,
-                              height: 1.1)),
-                    ),
-                    const SizedBox(width: 4),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Text('kg',
-                          style: tt.bodySmall
-                              ?.copyWith(fontWeight: FontWeight.w600)),
-                    ),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(999),
-                        color: AppTheme.accent.withValues(alpha: 0.12),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.trending_down_rounded,
-                              size: 12, color: AppTheme.accent),
-                          const SizedBox(width: 2),
-                          Text(
-                              '${(_startWeight - _currentWeight).toStringAsFixed(1)} kg',
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppTheme.accent)),
-                        ],
-                      ),
+                              letterSpacing: -1.5,
+                              height: 1.0,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 5),
+                          child: Text(
+                            'kg',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white.withValues(alpha: 0.55),
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
+                ),
+                const Spacer(),
+                // Right: gem-style loss badge — glowing pill
+                Padding(
+                  padding: const EdgeInsets.only(top: 18),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(999),
+                      // Subtle green fill — gem interior
+                      color: AppTheme.accent.withValues(alpha: 0.13),
+                      border: Border.all(
+                        color: AppTheme.accent.withValues(alpha: 0.28),
+                        width: 0.8,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.accent.withValues(alpha: 0.15),
+                          blurRadius: 12,
+                          spreadRadius: -2,
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.trending_down_rounded,
+                            size: 13, color: AppTheme.accent),
+                        const SizedBox(width: 3),
+                        Text(
+                          '\u2212${(_startWeight - _currentWeight).toStringAsFixed(1)} kg',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.accent,
+                            letterSpacing: 0.1,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
+
           const SizedBox(height: Spacing.md),
-          SizedBox(
-            height: 180,
-            child: TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0, end: 1),
-              duration: const Duration(milliseconds: 1200),
-              curve: Curves.easeOutCubic,
-              builder: (context, value, _) {
-                return CustomPaint(
-                  size: Size.infinite,
-                  painter: _WeightChartPainter(
-                    data: _weightData,
-                    goalWeight: _goalWeight,
-                    animProgress: value,
+
+          // ── Chart with ambient blue glow backdrop ──────────
+          Stack(
+            children: [
+              // Ambient blue glow — bleeds from chart data into the card
+              Positioned(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: 20,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    gradient: RadialGradient(
+                      center: const Alignment(0.0, 0.2),
+                      radius: 0.75,
+                      colors: [
+                        AppTheme.weight.withValues(alpha: 0.10),
+                        Colors.transparent,
+                      ],
+                    ),
                   ),
-                );
-              },
-            ),
+                ),
+              ),
+              // The chart itself
+              SizedBox(
+                height: 220,
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: 1),
+                  duration: const Duration(milliseconds: 1400),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, value, _) {
+                    return CustomPaint(
+                      size: Size.infinite,
+                      painter: _WeightChartPainter(
+                        data: _weightData,
+                        goalWeight: _goalWeight,
+                        animProgress: value,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: Spacing.sm),
+
+          // ── Bottom stats row ──────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(
-                Spacing.lg, 0, Spacing.lg, Spacing.lg),
+                Spacing.lg, Spacing.sm, Spacing.lg, Spacing.lg),
             child: Row(
               children: [
                 _miniStat('Start', '${_startWeight.toStringAsFixed(0)}kg'),
@@ -432,25 +498,42 @@ class _ProgressScreenState extends State<ProgressScreen>
   }
 
   Widget _miniStat(String label, String value) => Expanded(
-        child: Column(children: [
-          Text(value,
-              style: const TextStyle(
+        child: Column(
+          children: [
+            // Stat value — slightly gradient-tinted white for premium look
+            ShaderMask(
+              shaderCallback: (b) => const LinearGradient(
+                colors: AppTheme.weightGradient,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ).createShader(Rect.fromLTWH(0, 0, b.width, b.height)),
+              blendMode: BlendMode.srcATop,
+              child: Text(
+                value,
+                style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
-                  letterSpacing: -0.3)),
-          const SizedBox(height: 2),
-          Text(label,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              label.toUpperCase(),
               style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white.withValues(alpha: 0.4),
-                  letterSpacing: 0.5)),
-        ]),
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+                color: Colors.white.withValues(alpha: 0.38),
+                letterSpacing: 0.9,
+              ),
+            ),
+          ],
+        ),
       );
 
   Widget _dividerVert() => Container(
-      width: 0.5, height: 28, color: Colors.white.withValues(alpha: 0.08));
+      width: 0.5, height: 32, color: Colors.white.withValues(alpha: 0.08));
 
   // ── BMI Records ────────────────────────────────────────
 
@@ -928,40 +1011,78 @@ class _WeightChartPainter extends CustomPainter {
     required this.animProgress,
   });
 
+  static const _months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+
   @override
   void paint(Canvas canvas, Size size) {
     if (data.isEmpty) return;
-    const padL = 0.0, padR = 16.0, padT = 12.0, padB = 24.0;
+
+    // ── Layout constants ───────────────────────────────────
+    // padL = 40 gives room for Y-axis weight labels on the left
+    const double padL = 40.0;
+    const double padR = 20.0;
+    const double padT = 16.0;
+    const double padB = 28.0;
+
     final chartW = size.width - padL - padR;
     final chartH = size.height - padT - padB;
+
+    // ── Data range — round to clean tick boundaries ────────
     final weights = data.map((d) => d.weight).toList();
-    final minW = (weights.reduce(math.min) - 2).floorToDouble();
-    final maxW = (weights.reduce(math.max) + 2).ceilToDouble();
+    final rawMin = weights.reduce(math.min);
+    final rawMax = weights.reduce(math.max);
+    // Extend range so goal and all points have breathing room
+    final extendedMin = math.min(goalWeight, rawMin) - 1.5;
+    final extendedMax = rawMax + 2.0;
+    // Round to nearest integer for clean axis labels
+    final minW = extendedMin.floorToDouble();
+    final maxW = extendedMax.ceilToDouble();
     final range = maxW - minW;
+
+    // ── Coordinate helpers ─────────────────────────────────
     double toX(int i) => padL + (i / (data.length - 1)) * chartW;
-    double toY(double w) => padT + (1 - (w - minW) / range) * chartH;
+    double toY(double w) => padT + (1.0 - (w - minW) / range) * chartH;
 
-    // Goal line
-    final goalY = toY(goalWeight);
-    final dashPaint = Paint()
-      ..color = AppTheme.accent.withValues(alpha: 0.25)
-      ..strokeWidth = 1;
-    for (double x = padL; x < size.width - padR; x += 8) {
-      canvas.drawLine(Offset(x, goalY), Offset(x + 4, goalY), dashPaint);
-    }
-    final goalTp = TextPainter(
-      text: TextSpan(
-          text: 'Goal ${goalWeight.toStringAsFixed(0)}kg',
+    // ── Y-axis grid lines + labels ─────────────────────────
+    // Choose 5 evenly-spaced tick values across the weight range
+    const int yTickCount = 5;
+    final double yStep = (maxW - minW) / (yTickCount - 1);
+
+    final gridPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.05)
+      ..strokeWidth = 0.5
+      ..style = PaintingStyle.stroke;
+
+    for (int t = 0; t < yTickCount; t++) {
+      final w = minW + t * yStep;
+      final y = toY(w);
+
+      // Horizontal grid line — full chart width
+      canvas.drawLine(Offset(padL, y), Offset(padL + chartW, y), gridPaint);
+
+      // Y-axis label — right-aligned just left of chart area
+      final labelTp = TextPainter(
+        text: TextSpan(
+          text: w.round().toString(),
           style: TextStyle(
-              fontSize: 9,
-              color: AppTheme.accent.withValues(alpha: 0.5),
-              fontWeight: FontWeight.w500)),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    goalTp.paint(
-        canvas, Offset(size.width - padR - goalTp.width, goalY - 14));
+            fontSize: 9,
+            fontWeight: FontWeight.w500,
+            color: Colors.white.withValues(alpha: 0.30),
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      // Right-align: position so label right edge is at (padL - 6)
+      labelTp.paint(
+        canvas,
+        Offset(padL - 6 - labelTp.width, y - labelTp.height / 2),
+      );
+    }
 
-    // Bezier path
+    // ── Animated visible points ────────────────────────────
     final visibleCount =
         (data.length * animProgress).ceil().clamp(1, data.length);
     final points = <Offset>[];
@@ -970,85 +1091,161 @@ class _WeightChartPainter extends CustomPainter {
     }
     if (points.length < 2) return;
 
+    // ── Bezier cubic spline through points ─────────────────
     final path = Path()..moveTo(points[0].dx, points[0].dy);
     for (var i = 0; i < points.length - 1; i++) {
-      final p0 = points[i], p1 = points[i + 1];
+      final p0 = points[i];
+      final p1 = points[i + 1];
       final cpx = (p0.dx + p1.dx) / 2;
       path.cubicTo(cpx, p0.dy, cpx, p1.dy, p1.dx, p1.dy);
     }
 
-    // Fill
+    // ── Fill gradient — rich, visible blue wash ────────────
+    // Much more opaque than old 0.15 — fills the area with visible color
+    final fillRect = Rect.fromLTWH(padL, padT, chartW, chartH);
     final fillPath = Path.from(path)
       ..lineTo(points.last.dx, padT + chartH)
       ..lineTo(points.first.dx, padT + chartH)
       ..close();
-    canvas.drawPath(
-        fillPath,
-        Paint()
-          ..shader = LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppTheme.weight.withValues(alpha: 0.15),
-              AppTheme.weight.withValues(alpha: 0.0),
-            ],
-          ).createShader(Rect.fromLTWH(0, padT, chartW, chartH)));
 
-    // Line
     canvas.drawPath(
-        path,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.5
-          ..strokeCap = StrokeCap.round
-          ..shader = const LinearGradient(colors: AppTheme.weightGradient)
-              .createShader(Rect.fromLTWH(padL, 0, chartW, 1)));
+      fillPath,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppTheme.weight.withValues(alpha: 0.25), // much more visible
+            AppTheme.weight.withValues(alpha: 0.0),
+          ],
+          stops: const [0.0, 1.0],
+        ).createShader(fillRect),
+    );
 
-    // Glow
+    // ── Glow pass — wide diffuse glow below the line ───────
     canvas.drawPath(
-        path,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 6
-          ..strokeCap = StrokeCap.round
-          ..shader = LinearGradient(colors: [
-            AppTheme.weight.withValues(alpha: 0.15),
-            AppTheme.weight.withValues(alpha: 0.08),
-          ]).createShader(Rect.fromLTWH(padL, 0, chartW, 1))
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4));
+      path,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 8
+        ..strokeCap = StrokeCap.round
+        ..shader = LinearGradient(
+          colors: [
+            AppTheme.weight.withValues(alpha: 0.20),
+            AppTheme.weight.withValues(alpha: 0.10),
+          ],
+        ).createShader(fillRect)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
+    );
 
-    // Data points
-    for (final p in points) {
-      canvas.drawCircle(
-          p,
-          4,
-          Paint()
-            ..color = AppTheme.weight.withValues(alpha: 0.15)
-            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4));
-      canvas.drawCircle(p, 2.5, Paint()..color = AppTheme.weight);
-      canvas.drawCircle(p, 1.2, Paint()..color = Colors.white);
+    // ── Main line — gradient stroke ────────────────────────
+    canvas.drawPath(
+      path,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.5
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..shader = const LinearGradient(
+          colors: AppTheme.weightGradient,
+        ).createShader(Rect.fromLTWH(padL, 0, chartW, 1)),
+    );
+
+    // ── Goal dashed line ───────────────────────────────────
+    final goalY = toY(goalWeight);
+    final goalDashPaint = Paint()
+      ..color = AppTheme.accent.withValues(alpha: 0.40)
+      ..strokeWidth = 1.0;
+    for (double x = padL; x < padL + chartW - 4; x += 9) {
+      canvas.drawLine(
+        Offset(x, goalY),
+        Offset(math.min(x + 5, padL + chartW), goalY),
+        goalDashPaint,
+      );
     }
 
-    // X labels
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    for (var i = 0; i < visibleCount; i += 3) {
+    // Goal pill label — drawn at the right side of the dashed line
+    const goalLabelPad = 6.0;
+    final goalLabelTp = TextPainter(
+      text: TextSpan(
+        text: 'GOAL ${goalWeight.toStringAsFixed(0)}kg',
+        style: TextStyle(
+          fontSize: 8,
+          fontWeight: FontWeight.w700,
+          color: AppTheme.accent.withValues(alpha: 0.85),
+          letterSpacing: 0.5,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    // Pill background rect
+    final pillW = goalLabelTp.width + goalLabelPad * 2;
+    final pillH = goalLabelTp.height + 4.0;
+    final pillLeft = padL + chartW - pillW;
+    final pillTop = goalY - pillH / 2;
+    final pillRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(pillLeft, pillTop, pillW, pillH),
+      const Radius.circular(4),
+    );
+    canvas.drawRRect(
+      pillRect,
+      Paint()..color = AppTheme.accent.withValues(alpha: 0.12),
+    );
+    canvas.drawRRect(
+      pillRect,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.6
+        ..color = AppTheme.accent.withValues(alpha: 0.30),
+    );
+    goalLabelTp.paint(
+      canvas,
+      Offset(pillLeft + goalLabelPad, pillTop + (pillH - goalLabelTp.height) / 2),
+    );
+
+    // ── Data dots — outer halo + solid dot + white core ───
+    for (var i = 0; i < points.length; i++) {
+      final p = points[i];
+
+      // Outer glow halo
+      canvas.drawCircle(
+        p,
+        6,
+        Paint()
+          ..color = AppTheme.weight.withValues(alpha: 0.20)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+      );
+
+      // Solid blue dot
+      canvas.drawCircle(p, 3.5, Paint()..color = AppTheme.weight);
+
+      // White inner highlight — feels lit from within
+      canvas.drawCircle(p, 1.5, Paint()..color = Colors.white);
+    }
+
+    // ── X-axis date labels — every 2nd point ──────────────
+    for (var i = 0; i < visibleCount; i += 2) {
       final d = data[i].date;
       final tp = TextPainter(
         text: TextSpan(
-            text: '${months[d.month - 1]} ${d.day}',
-            style: TextStyle(
-                fontSize: 9,
-                color: Colors.white.withValues(alpha: 0.3))),
+          text: '${_months[d.month - 1]} ${d.day}',
+          style: TextStyle(
+            fontSize: 9,
+            fontWeight: FontWeight.w400,
+            color: Colors.white.withValues(alpha: 0.35),
+          ),
+        ),
         textDirection: TextDirection.ltr,
       )..layout();
-      tp.paint(canvas, Offset(toX(i) - tp.width / 2, size.height - 14));
+      // Center label under the data point, clamp to chart edges
+      double labelX = toX(i) - tp.width / 2;
+      labelX = labelX.clamp(padL, padL + chartW - tp.width);
+      tp.paint(canvas, Offset(labelX, size.height - padB + 6));
     }
   }
 
   @override
   bool shouldRepaint(_WeightChartPainter old) =>
-      animProgress != old.animProgress;
+      animProgress != old.animProgress || goalWeight != old.goalWeight;
 }
