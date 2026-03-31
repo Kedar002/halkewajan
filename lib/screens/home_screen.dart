@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_background.dart';
 import '../widgets/progress_calendar.dart';
@@ -6,6 +7,7 @@ import '../widgets/todays_calorie_card.dart';
 import '../widgets/weight_goal_card.dart';
 import '../widgets/diet_checklist.dart';
 import '../widgets/todays_workout_card.dart';
+import 'consistency_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -157,11 +159,22 @@ class _HomeScreenState extends State<HomeScreen>
 
               const SizedBox(height: Spacing.md),
 
-              // 4: Progress Calendar — reflection / history
+              // 4: Progress Calendar — reflection / history (tap to open)
               _animated(
                 4,
-                ProgressCalendar(
-                  dayResults: ProgressCalendar.generateDemoData(),
+                GestureDetector(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ConsistencyScreen(),
+                      ),
+                    );
+                  },
+                  child: ProgressCalendar(
+                    dayResults: ProgressCalendar.generateDemoData(),
+                  ),
                 ),
               ),
 
